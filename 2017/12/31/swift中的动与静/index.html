@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="[TOC]
+Swift 相比于其它语言有一个很好的特性, 开发者不仅可以给协议增加接口, 还能进一步给协议提供方法实现. 通过这个 Feature, 开发者可以使用组合而非继承的思想来设计对象, 也就是所谓的面向接口编程.
+但是需要明确的是, 这个特性并不是可以随心所欲的加以使用. 在日常 codi">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="Maize">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="swift中的动与静"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="Maize的小站"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+        <meta name="twitter:card" content="summary" />
+    
+
+    <!-- Title -->
+    
+    <title>swift中的动与静 - Maize的小站</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet"/>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+    <link href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Google Analytics -->
+    
+
+
+    <!-- favicon -->
+    
+	
+</head>
+
+
+<body>
+
+    <!-- Menu -->
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">iOS 开发者, 现在职腾讯.</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                
+                    <li>
+                        <a href="/">
+                            
+                                Home
+                            
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="/archives">
+                            
+                                Archives
+                            
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="https://github.com/maizegithub">
+                            
+                                <i class="fa fa-github fa-stack-2x"></i>
+                            
+                        </a>
+                    </li>
+                
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+
+    <!-- Main Content -->
+    <!-- Page Header -->
+<!-- Set your background image for this header in your post front-matter: cover -->
+
+<header class="intro-header" style="background-image: url('http://www.codeblocq.com/assets/projects/hexo-theme-clean-blog/img/home-bg.jpg')">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <h1>swift中的动与静</h1>
+                    
+                    <h2 class="post-subheading">
+                        可能是2017年的最后一篇产出, 探讨了 Swift 方法派发的那些事.
+                    </h2>
+                    
+                    <span class="meta">
+                        <!-- Date and Author -->
+                        
+                        
+                            2017-12-31
+                        
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Tags and categories -->
+           
+                <div class="col-lg-4 col-lg-offset-2 col-md-5 col-md-offset-1 post-tags">
+                    
+                        
+
+
+<a href="/tags/Swift/">#Swift</a>
+
+
+                    
+                </div>
+                <div class="col-lg-4 col-md-5 post-categories">
+                    
+                </div>
+            
+
+            <!-- Gallery -->
+            
+
+            <!-- Post Main Content -->
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <p>[TOC]</p>
+<p><strong>Swift</strong> 相比于其它语言有一个很好的特性, 开发者不仅可以给协议增加接口, 还能进一步给协议提供方法实现. 通过这个 <em>Feature</em>, 开发者可以使用<strong>组合</strong>而非<strong>继承</strong>的思想来设计对象, 也就是所谓的<strong>面向接口编程</strong>.</p>
+<p>但是需要明确的是, 这个特性并不是可以随心所欲的加以使用. 在日常 <em>coding</em> 中偶尔能遇到某个行为被编译器报错, 又或者编译通过后表现出预期外行为. 这篇文章整理了我在开发过程中遇到的一些问题, 并通过 <em>Swift</em> 的派发机制来解释这些行为背后的原因.</p>
+<h2 id="从一个小问题讲起"><a href="#从一个小问题讲起" class="headerlink" title="从一个小问题讲起"></a>从一个小问题讲起</h2><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">protocol</span> <span class="title">MyProtocol</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFuncA</span><span class="params">()</span></span></span><br><span class="line">    </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">MyProtocol</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFuncA</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">"MyProtocol's testFuncA"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  </span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFuncB</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">"MyProtocol's testFuncB"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>看到上面的例子, 我们定义了一个协议 <em>MyProtocol</em>, 该协议存在一个必须实现的方法 <em>testFuncA</em>.</p>
+<p>此外, 我们通过扩展为改协议提供 <em>testFuncA</em> 的默认实现, 并额外的提供了一个名为 <em>testFuncB</em> 方法的默认实现.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyClass</span>: <span class="title">MyProtocol</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFuncA</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">"MyClass's testFuncA"</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFuncB</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">"MyClass's testFuncB"</span>)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>接着定义一个类 <em>MyClass</em>, 该类提供 <em>testFuncA</em>, <em>testFuncA</em> 的方法实现.</p>
+<p>那么问题来了:</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> object: <span class="type">MyProtocol</span> = <span class="type">MyClass</span>()</span><br><span class="line">object.testFuncA()</span><br><span class="line">object.testFuncB()</span><br></pre></td></tr></table></figure>
+<p>对声明为协议类型的对象分别调用 <em>testFuncA</em>, <em>testFuncA</em>, 实际调用的方法究竟是 <em>MyClass</em> 提供的呢, 还是 <em>MyProtocol</em> 提供的默认实现?</p>
+<figure class="highlight tex"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Output:</span><br><span class="line">MyClass's testFuncA</span><br><span class="line">MyProtocol's testFuncB</span><br></pre></td></tr></table></figure>
+<p>可以看到, <strong>调用 <em>MyProtocol</em> 内声明的方法时, 最终调用到了 <em>MyClass</em> 内部的实现, 而调用方法未在协议内声明时, 实际调用到了协议扩展中提供的实现.</strong></p>
+<p>这个问题并不罕见, 开发者可能已经见怪不怪. 不过莫急, 在解释背后的原因之前, 我还想抛出两个问题.</p>
+<h3 id="TableView-转发器"><a href="#TableView-转发器" class="headerlink" title="TableView 转发器"></a>TableView 转发器</h3><p>这是我在开发中遇到的一个问题.</p>
+<p>随着版本迭代, 一些页面里的内容越来越多. 为了避免 <em>Massive View Controller</em> 问题, 我将页面中的内容划分为一个个的 <em>Module</em>, <em>Module</em> 负责管理各个模块的 <em>Model</em> 和 <em>View</em>. 整个页面以 <em>TableView</em> 的形式组织, 由最外面的容器 <em>ViewController</em> <strong>转发 <em>TableView</em> 的数据源代理方法到各个 <em>Module</em> 中去</strong>.</p>
+<p>出于面向协议的设计思路, 首先想到的是将上述黑体字所描述的功能通过协议扩展的方式实现, 这样一来对象只需要遵循我所设计的协议就可以获得<strong>转发 <em>TableView</em> 的数据源代理方法到各个 <em>Module</em> </strong>的功能.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">ModuleContainerProtocol</span> <span class="title">where</span> <span class="title">Self</span>: <span class="title">UITableViewDataSource</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">tableView</span><span class="params">(<span class="number">_</span> tableView: UITableView, numberOfRowsInSection section: Int)</span></span> -&gt; <span class="type">Int</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> modules.<span class="built_in">reduce</span>(<span class="number">0</span>) &#123; $<span class="number">0</span> + $<span class="number">0</span>.numberOfSections?(<span class="keyword">in</span>: <span class="keyword">self</span>.tableView) ?? <span class="number">1</span> &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">tableView</span><span class="params">(<span class="number">_</span> tableView: UITableView, cellForRowAt indexPath: IndexPath)</span></span> -&gt; <span class="type">UITableViewCell</span> &#123;</span><br><span class="line">        <span class="keyword">let</span> (module, section) = convertToTargetModule(with: indexPath.section)</span><br><span class="line">        <span class="keyword">return</span> module.tableView(tableView, cellForRowAt: <span class="type">IndexPath</span>(row: indexPath.row, section: section))</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>方法里的实现是往各个 <em>Module</em> 转发消息的实现, 可以忽略.</p>
+<p>问题是: <strong>可以在 <em>Swift</em> 的协议扩展里为 Objective-C 的协议提供方法实现吗?</strong></p>
+<h3 id="Module-通信"><a href="#Module-通信" class="headerlink" title="Module 通信"></a>Module 通信</h3><p>这个同样是在开发 <em>Module</em> 过程中遇到的问题.</p>
+<p>在某些业务场景下需要 <em>Module</em> 向主容器发送一些特定的业务消息, 主容器以遵循 <em>ModuleContainer</em> 协议的泛型的形式被 <em>Module</em> 弱引用. </p>
+<p>我为 <em>ModuleContainer</em> 添加一个方法, <em>Module</em> 通过这个方法可以向主容器发送特定的业务消息. 这个方法从功能上看明显是可选的, 但是我不想添加 <em>optional</em> 关键字(还得将协议声明为 <em>@objc</em>, 成本较大), 于是我想了一个”巧妙”的方法:</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">protocol</span> <span class="title">ModuleContainer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">customMessage</span><span class="params">(<span class="number">_</span> key: ModuleContainerCustomKey, parameters: [Any]?)</span></span></span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">ModuleContainer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">customMessage</span><span class="params">(<span class="number">_</span> key: ModuleContainerCustomKey, parameters: [Any]?)</span></span> &#123;&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 该类实现 TableView 转发器功能</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BaseModuleController</span>: <span class="title">UIViewController</span>, <span class="title">ModuleContainer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyViewController</span>: <span class="title">BaseModuleController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">customMessage</span><span class="params">(<span class="number">_</span> key: ModuleContainerCustomKey, parameters: [Any]?)</span></span> &#123;</span><br><span class="line">        <span class="comment">// 接受消息并处理</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在为 <em>ModuleContainer</em> 声明方法的同时, 在协议扩展里为其提供默认实现.</p>
+<p>在需要该方法的业务层, 比如 <em>MyViewController</em> 中, 再覆盖该方法的默认实现. 或许你已经发现了, 缺少 <em>override</em> 关键字也能编译通过.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> moduleContainer: <span class="type">ModuleCOntainer</span></span><br><span class="line">moduleContainer.customMessage(someKey, parameters: <span class="literal">nil</span>)</span><br></pre></td></tr></table></figure>
+<p>那么问题来了, 与最开始的一个例子一样,  <em>customMessage</em> 是声明在协议内部的, 差别在于<strong>提供覆盖实现的类并不是遵循这个协议的类而是该类的子类</strong>. 这样的调用方式最终能否调用到 <em>MyViewController</em> 提供的实现呢?</p>
+<p>剧透一下, 不能, 原因稍后再讲.</p>
+<p>在这个基础上我又做了一些改进, 我在 <em>BaseModuleController</em> 里提供协议的实现, 在 <em>MyViewController</em> 中再覆盖其父类的实现, 这样终于能见到熟悉的 <em>override</em> 关键字了.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 该类实现 TableView 转发器功能</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BaseModuleController</span>: <span class="title">UIViewController</span>, <span class="title">ModuleContainer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">customMessage</span><span class="params">(<span class="number">_</span> key: ModuleContainerCustomKey, parameters: [Any]?)</span></span> &#123;</span><br><span class="line">        <span class="comment">// Inspired by subclass if needed.</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyViewController</span>: <span class="title">BaseModuleController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">func</span> <span class="title">customMessage</span><span class="params">(<span class="number">_</span> key: ModuleContainerCustomKey, parameters: [Any]?)</span></span> &#123;</span><br><span class="line">        <span class="comment">// 接受消息并处理</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>最后一个问题, 这样能达到目的吗?</strong></p>
+<p>在解释问题之前, 首先简短的介绍一下各种语言常见的三种函数派发方式.</p>
+<h2 id="Direct-Table-amp-Message"><a href="#Direct-Table-amp-Message" class="headerlink" title="Direct, Table &amp; Message"></a>Direct, Table &amp; Message</h2><p>不少 <em>Swift</em> 开发人员都有过 <em>Objective-C</em> 的开发经历, 而 <em>Objective-C</em> 最让人印象深刻的, 就是那奇怪的语法和基于消息的函数派发方式了.</p>
+<h3 id="Message"><a href="#Message" class="headerlink" title="Message"></a>Message</h3><p>基于消息是最为灵活的一种派发方式, 最大限度的允许开发者在运行时修改函数的行为. </p>
+<p>以 <em>Objective-C</em> 为例, 所有对象都拥有一个 <em>isa</em> 指针, 可以通过该指针找到对应的方法列表. 方法列表中存储着该类实现的方法(不包括父类实现的方法)以及指向父类方法列表的指针. 当消息派发时, 会沿着类的方法列表到父类的方法列表(<em>Super</em> 指针)的顺序寻找方法实现.</p>
+<p>在 <em>Swift</em> 中, <em>Dynamic</em> 关键字可以为方法加上运行时特性.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MySuperClass</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">dynamic</span> <span class="function"><span class="keyword">func</span> <span class="title">testFuncA</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">    <span class="keyword">dynamic</span> <span class="function"><span class="keyword">func</span> <span class="title">testFuncB</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyClass</span>: <span class="title">MySuperClass</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">func</span> <span class="title">testFuncB</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">    <span class="keyword">dynamic</span> <span class="function"><span class="keyword">func</span> <span class="title">testFuncC</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">MyClass</th>
+<th style="text-align:center">MySuperClass</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Super</td>
+<td style="text-align:center">testFuncA</td>
+</tr>
+<tr>
+<td style="text-align:center">testFuncB(New)</td>
+<td style="text-align:center">testFuncB</td>
+</tr>
+<tr>
+<td style="text-align:center">testFuncC</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Table"><a href="#Table" class="headerlink" title="Table"></a>Table</h3><p>函数表是最为常见的函数派发方式. </p>
+<p>同 <em>Message Dispatch</em> 类似, 所有类也会维护一个自己的函数表, 不同的是所有未被复写的父类所实现的函数地址都会拷贝在这个表中, 而不是由一个指向父类方法表的指针替代. 由于少了一步指针寻址步骤, 在派发效率上要比基于消息的派发高效, 但是在灵活性上打了折扣.</p>
+<p>在 <em>Swift</em> 中, 该表被称为 <em>Witness Table</em>.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MySuperClass</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFuncA</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFuncB</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyClass</span>: <span class="title">MySuperClass</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">func</span> <span class="title">testFuncB</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFuncC</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">MyClass</th>
+<th style="text-align:center">MySuperClass</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">testFuncA</td>
+<td style="text-align:center">testFuncA</td>
+</tr>
+<tr>
+<td style="text-align:center">testFuncB(New)</td>
+<td style="text-align:center">testFuncB</td>
+</tr>
+<tr>
+<td style="text-align:center">testFuncC</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Direct"><a href="#Direct" class="headerlink" title="Direct"></a>Direct</h3><p>直接派发是效率最高的, 在编译阶段就能确定调用的函数地址. 但是缺乏了动态特性, 也不支持继承.</p>
+<h3 id="In-Swift"><a href="#In-Swift" class="headerlink" title="In Swift"></a>In Swift</h3><p><em>Swift</em> 支持了全部三种派发方式, 根据具体的使用场景和关键字决定派发方式.</p>
+<p>下面是搜集到的一位开发者整理的 <em>Swift3</em> 下派发方式的测试结果. 之后我会将 <em>Swift4</em> 下的测试结果更新在这里.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Initial Declaration</th>
+<th>Extension</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Value Type</td>
+<td>Direct</td>
+<td>Direct</td>
+</tr>
+<tr>
+<td>Protocol</td>
+<td>Table</td>
+<td>Direct</td>
+</tr>
+<tr>
+<td>Class</td>
+<td>Table</td>
+<td>Direct</td>
+</tr>
+<tr>
+<td>NSObject SubClass</td>
+<td>Table</td>
+<td>Message</td>
+</tr>
+</tbody>
+</table>
+<p>以及该位开发者在 <em>Swift3</em> 下的总结:</p>
+<ul>
+<li>值类型总是会使用直接派发, 简单易懂</li>
+<li>而协议和类的 extension 都会使用直接派发</li>
+<li><code>NSObject</code> 的 extension 会使用消息机制进行派发</li>
+<li><code>NSObject</code> 声明作用域里的函数都会使用函数表进行派发.</li>
+<li>协议里声明的, 并且带有默认实现的函数会使用函数表进行派发</li>
+</ul>
+<p>需要注意的是, 尽管开发者文档<strong>表明了部分场景的派发情况, 但是实际的派发方式可能会被优化</strong>(<a href="https://developer.apple.com/swift/blog/?id=27" target="_blank" rel="noopener">Increasing Performance by Reducing Dynamic Dispatch</a>). 比如 <strong>@objc</strong> 关键字能为方法添加运行时特性, 但是在使用的时候仍有可能被优化成 <em>static dispatch</em>. 且除了 <strong>final</strong>,<strong>private</strong> 一些关键字能让编译器在编译期就能确定调用的函数地址外, <em>Whole Module Optimization</em> 选项能让绝大多数未被重写的方法得到编译器的优化.</p>
+<h2 id="回到问题"><a href="#回到问题" class="headerlink" title="回到问题"></a>回到问题</h2><h3 id="一个小问题"><a href="#一个小问题" class="headerlink" title="一个小问题"></a>一个小问题</h3><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">protocol</span> <span class="title">MyProtocol</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFuncA</span><span class="params">()</span></span></span><br><span class="line">    </span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">MyProtocol</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFuncA</span><span class="params">()</span></span> &#123;</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">"MyProtocol's testFuncA"</span>)</span><br><span class="line">    &#125;</span><br><span class="line">  </span><br><span class="line">  	<span class="function"><span class="keyword">func</span> <span class="title">testFuncB</span><span class="params">()</span></span> &#123;</span><br><span class="line">    	<span class="built_in">print</span>(<span class="string">"MyProtocol's testFuncB"</span>)</span><br><span class="line">  	&#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><em>testFuncA</em> 和 <em>testFuncB</em> 虽然都在 <em>MyProtocol</em> 的扩展中提供了默认实现, 但是:</p>
+<ul>
+<li><em>testFuncA</em> 的默认实现注册到了 <em>MyProtocol</em> 的函数表中.</li>
+<li>testFuncB 的函数实现将会被直接派发.</li>
+</ul>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> object: <span class="type">MyProtocol</span> = <span class="type">MyClass</span>()</span><br><span class="line">object.testFuncA()</span><br><span class="line">object.testFuncB()</span><br></pre></td></tr></table></figure>
+<p>因此, <em>MyClass</em> 在实现 <em>testFuncA</em> 的时候, 也将这个实现注册到了 <em>MyProtocol</em> 的函数表中. 在调用 <em>testFuncA</em> 的时候, 会在函数表中查找对应的实现. 而在编译的时候就已经将 <em>MyProtocol</em> 中关于 <em>testFuncB</em> 的函数地址作为派发的地址给确定下来了, 根本不关心 <em>object</em> 的具体类型. </p>
+<p>因此在调用的时候 <em>testFuncA</em> 使用的是 <em>MyClass</em> 的实现, 而 <em>testFuncB</em> 使用的是 <em>MyProtocol</em> 的实现.</p>
+<h3 id="TableView-转发器-1"><a href="#TableView-转发器-1" class="headerlink" title="TableView 转发器"></a>TableView 转发器</h3><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">ModuleContainerProtocol</span> <span class="title">where</span> <span class="title">Self</span>: <span class="title">UITableViewDataSource</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">tableView</span><span class="params">(<span class="number">_</span> tableView: UITableView, numberOfRowsInSection section: Int)</span></span> -&gt; <span class="type">Int</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> modules.<span class="built_in">reduce</span>(<span class="number">0</span>) &#123; $<span class="number">0</span> + $<span class="number">0</span>.numberOfSections?(<span class="keyword">in</span>: <span class="keyword">self</span>.tableView) ?? <span class="number">1</span> &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">tableView</span><span class="params">(<span class="number">_</span> tableView: UITableView, cellForRowAt indexPath: IndexPath)</span></span> -&gt; <span class="type">UITableViewCell</span> &#123;</span><br><span class="line">        <span class="keyword">let</span> (module, section) = convertToTargetModule(with: indexPath.section)</span><br><span class="line">        <span class="keyword">return</span> module.tableView(tableView, cellForRowAt: <span class="type">IndexPath</span>(row: indexPath.row, section: section))</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><em>UITableViewDataSource</em> 是<em>OC</em> 中的协议, 使用 <em>Message Dispatch</em> 的派发方式. 而 <em>protocol</em> 的 <em>extension</em> 中定义的方法却是 <em>objc_msgSend()</em> 方法不可见的, 因此在编译器会报错.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Non</span>-'<span class="meta">@objc</span>' method 'tableView(<span class="number">_</span>:numberOfRowsInSection:)' does not satisfy requirement of '<span class="meta">@objc</span>' <span class="class"><span class="keyword">protocol</span> '<span class="title">UITableViewDataSource</span>'</span></span><br></pre></td></tr></table></figure>
+<p>既然是对 <em>OC</em> 不可见, 加上 <em>@objc</em> 关键字能否满足需求呢?</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@objc</span> can only be used with members of classes, <span class="meta">@objc</span> protocols, and concrete extensions of classes</span><br></pre></td></tr></table></figure>
+<p>很遗憾, 目前 <em>Swift</em> 不支持这种操作, 不过不排除未来支持的可能性, 参见<a href="https://stackoverflow.com/questions/39487168/non-objc-method-does-not-satisfy-optional-requirement-of-objc-protocol" target="_blank" rel="noopener">Non-‘@objc’ method does not satisfy optional requirement of ‘@objc’ protocol</a>.</p>
+<p>同理, 直接为 <em>UITableViewDataSource</em> 为原方法提供默认实现也是不可取的, 添加的方法在 <em>Swift</em> 侧可以调用, 但是在 <em>OC</em> 测(也就是 <em>UIKit</em> 内的实现) 是完全不可见这个方法的.</p>
+<h3 id="Module-通信-1"><a href="#Module-通信-1" class="headerlink" title="Module 通信"></a>Module 通信</h3><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">protocol</span> <span class="title">ModuleContainer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">customMessage</span><span class="params">(<span class="number">_</span> key: ModuleContainerCustomKey, parameters: [Any]?)</span></span></span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">ModuleContainer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">customMessage</span><span class="params">(<span class="number">_</span> key: ModuleContainerCustomKey, parameters: [Any]?)</span></span> &#123;&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 该类实现 TableView 转发器功能</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BaseModuleController</span>: <span class="title">UIViewController</span>, <span class="title">ModuleContainer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyViewController</span>: <span class="title">BaseModuleController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">customMessage</span><span class="params">(<span class="number">_</span> key: ModuleContainerCustomKey, parameters: [Any]?)</span></span> &#123;</span><br><span class="line">        <span class="comment">// 接受消息并处理</span></span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><em>customMessage</em> 方法由于声明在 <em>ModuleContainer</em> 的原始定义内, 因此派发方式为 <em>Table Dispatch</em>. 需要注意的是, 在 <em>BaseModuleController</em> 内提供的 <em>customMessage</em> 实现才会注册进 <em>ModuleContainer</em> 的函数表, 也就是说 <em>MyViewController</em> 内的 <em>CustomMessage</em> 方法并不在函数表中.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> moduleContainer: <span class="type">ModuleCOntainer</span></span><br><span class="line">moduleContainer.customMessage(someKey, parameters: <span class="literal">nil</span>)</span><br></pre></td></tr></table></figure>
+<p>所以这样调用的结果自然是会调用到 <em>ModuleContainer</em> 所提供的 <em>customMessage</em> 默认实现了.</p>
+<h3 id="one-more-thing"><a href="#one-more-thing" class="headerlink" title="one more thing"></a>one more thing</h3><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 该类实现 TableView 转发器功能</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BaseModuleController</span>: <span class="title">UIViewController</span>, <span class="title">ModuleContainer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">customMessage</span><span class="params">(<span class="number">_</span> key: ModuleContainerCustomKey, parameters: [Any]?)</span></span> &#123;</span><br><span class="line">        <span class="comment">// Inspired by subclass if needed.</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyViewController</span>: <span class="title">BaseModuleController</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">func</span> <span class="title">customMessage</span><span class="params">(<span class="number">_</span> key: ModuleContainerCustomKey, parameters: [Any]?)</span></span> &#123;</span><br><span class="line">        <span class="comment">// 接受消息并处理</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>经过修改后, <em>BaseModuleController</em> 提供了 <em>customMessage</em> 的实现并注册到了 <em>ModuleContainer</em> 的函数表里. </p>
+<p>然后通过 <em>override</em> 关键字实现再往 <em>ModuleContainer</em> 的函数表里添加一个实现?</p>
+<p>答案是可以的, 但是需要注意的是, 一般开发者习惯将遵循某个协议的方法单独卸载 <em>extension</em> 中, 使得代码分布更加清晰.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">BaseModuleController</span>: <span class="title">ModuleContainer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">customMessage</span><span class="params">(<span class="number">_</span> key: ModuleContainerCustomKey, parameters: [Any]?)</span></span> &#123;</span><br><span class="line">        <span class="comment">// Inspired by subclass if needed.</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但是在 <em>swift</em> 中:</p>
+<ul>
+<li>不得在 <em>extension</em> 中 <em>override</em> 已有的方法.</li>
+<li>不得 <em>override</em> <em>extension</em> 里的方法.</li>
+</ul>
+<p>所以, 想要达到目的, 还是老老实实的忍住代码洁癖, 将 <em>customMessage</em> 放到 <em>BaseModuleController</em> 的初始声明里面去吧╮(╯_╰)╭</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://cocoacasts.com/what-does-the-dynamic-keyword-mean-in-swift-3/" target="_blank" rel="noopener">what-does-the-dynamic-keyword-mean-in-swift-3</a></li>
+<li><a href="https://developer.apple.com/swift/blog/?id=27" target="_blank" rel="noopener">Increasing Performance by Reducing Dynamic Dispatch</a></li>
+<li><a href="https://www.raizlabs.com/dev/2016/12/swift-method-dispatch/" target="_blank" rel="noopener">Method Dispatch in Swift</a></li>
+<li><a href="https://stackoverflow.com/questions/39487168/non-objc-method-does-not-satisfy-optional-requirement-of-objc-protocol" target="_blank" rel="noopener">Non-‘@objc’ method does not satisfy optional requirement of ‘@objc’ protocol</a></li>
+</ul>
+
+
+                
+            </div>
+
+            <!-- Comments -->
+            
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    
+
+
+                </div>
+            
+        </div>
+    </div>
+</article>
+
+    <!-- Footer -->
+    <hr />
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    
+
+                    
+
+                    
+                        <li>
+                            <a href="https://github.com/klugjo/hexo-theme-clean-blog" target="_blank">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                    
+
+                    
+
+                    
+
+                    
+                </ul>
+                <p class="copyright text-muted">&copy; 2018 Maize<br></p>
+                <p class="copyright text-muted">Original Theme <a target="_blank" href="http://startbootstrap.com/template-overviews/clean-blog/">Clean Blog</a> from <a href="http://startbootstrap.com/" target="_blank">Start Bootstrap</a></p>
+                <p class="copyright text-muted">Adapted for <a target="_blank" href="https://hexo.io/">Hexo</a> by <a href="http://www.codeblocq.com/" target="_blank">Jonathan Klughertz</a></p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+    <!-- After footer scripts -->
+    
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Bootstrap -->
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

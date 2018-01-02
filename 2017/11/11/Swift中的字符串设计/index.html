@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="[TOC]
+作为吃大白米饭直立行走的哺乳动物, 我们对形形色色的文字已经见怪不怪. 但对于吃进去的是电, 只记得一堆01串的计算机来说, 理解并且能够表示文字可不是件容易的事. 要让计算机理解文字, 最简单的方式就是将文字转变成它能够直接处理的数字, 对于这种从文字到数字的映射, 我们称其为编码.
+">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="Maize">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="Swift中的字符串设计"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="Maize的小站"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+        <meta name="twitter:card" content="summary" />
+    
+
+    <!-- Title -->
+    
+    <title>Swift中的字符串设计 - Maize的小站</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet"/>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+    <link href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Google Analytics -->
+    
+
+
+    <!-- favicon -->
+    
+	
+</head>
+
+
+<body>
+
+    <!-- Menu -->
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">iOS 开发者, 现在职腾讯.</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                
+                    <li>
+                        <a href="/">
+                            
+                                Home
+                            
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="/archives">
+                            
+                                Archives
+                            
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="https://github.com/maizegithub">
+                            
+                                <i class="fa fa-github fa-stack-2x"></i>
+                            
+                        </a>
+                    </li>
+                
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+
+    <!-- Main Content -->
+    <!-- Page Header -->
+<!-- Set your background image for this header in your post front-matter: cover -->
+
+<header class="intro-header" style="background-image: url('http://www.codeblocq.com/assets/projects/hexo-theme-clean-blog/img/home-bg.jpg')">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <h1>Swift中的字符串设计</h1>
+                    
+                    <h2 class="post-subheading">
+                        为什么 Swift 关于字符串的 API 这么奇怪?
+                    </h2>
+                    
+                    <span class="meta">
+                        <!-- Date and Author -->
+                        
+                        
+                            2017-11-11
+                        
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Tags and categories -->
+           
+                <div class="col-lg-4 col-lg-offset-2 col-md-5 col-md-offset-1 post-tags">
+                    
+                        
+
+
+<a href="/tags/Swift/">#Swift</a>
+
+
+                    
+                </div>
+                <div class="col-lg-4 col-md-5 post-categories">
+                    
+                </div>
+            
+
+            <!-- Gallery -->
+            
+
+            <!-- Post Main Content -->
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <p>[TOC]</p>
+<p>作为吃大白米饭直立行走的哺乳动物, 我们对形形色色的文字已经见怪不怪. 但对于吃进去的是电, 只记得一堆01串的计算机来说, 理解并且能够表示文字可不是件容易的事. 要让计算机理解文字, 最简单的方式就是将文字转变成它能够直接处理的数字, 对于这种从文字到数字的映射, 我们称其为编码.</p>
+<h2 id="从-ASCII-讲起"><a href="#从-ASCII-讲起" class="headerlink" title="从 ASCII 讲起"></a>从 ASCII 讲起</h2><p><em>ASCII</em> 是一套基于拉丁字母的编码系统, 它定义了127个常用字符, 包括26个基本拉丁字母, 阿拉伯数字和英式标点符号, 以及不可见的控制字符, 如空格, 换行等. 在计算机中, 只需要 7<em>Bit</em> 就可以表示下任意的 <em>ASCII</em> 字符, 相对 1<em>Byte</em> 而言, 还留出了一位用于表示其它字符, 为了利用好这一 <em>Bit</em>, 人们在之后发明出了众多 8<em>Bit</em> 的编码方式.</p>
+<p>但是这些编码方式之间互不兼容, 同样的编码在不同的编码系统中代表着完全不同的两个字符. 并且对于一些语言来说, 8<em>Bit</em> 所能表示的字符量实在太少了. 于是又出现了各个针对不同语言的编码方式, 广为人知的 <em>GB 2312</em>, <em>BIG-5</em> 就是针对中文而产生的中文字符集.</p>
+<p>这样虽然能够表示所有的字符, 但是各玩各的总不是互联网的玩法, 计算机也无法支持多语言环境. 于是, 为了解决传统编码方式的局限, <em>Unicode</em> 标准产生了, 它对世界上大部分的文字系统进行了整理, 编码, 提供了一套通用的解决方案.</p>
+<p><em>Unicode</em> 使用 21<em>Bit</em> 来表示字符, 2^21^ = 2,097,152, 这个数量已经大到可以表示整个人类历史上的所有字符了. 但截至目前, 也只有十万个出头的编码被使用. <em>Unicode</em> 为世界上几乎所有的字符都定义了一个数字, 这个数字叫做码点, 用 <code>U+xxxx</code> 的形式书写, <code>xxxx</code> 代表4到6个十六进制数.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">'<span class="type">U</span>+<span class="number">0041</span>' &lt;=&gt; '<span class="type">A'</span></span><br><span class="line">'<span class="type">U</span>+1F60A' &lt;=&gt; ':blush:'</span><br></pre></td></tr></table></figure>
+<p>需要注意的是, <strong><em>Unicode</em> 只是定义了从字符到数字的映射, 却没有定义具体如何存储这些信息.</strong> 倘若使用 2<em>Byte</em> 来存储字符, 不足以表示所有字符信息, 使用 4<em>Byte</em> 则又会造成空间的浪费. 为了解决这一问题, 又出现了多种针对 <em>Unicode</em> 的实现方式.</p>
+<h2 id="UTF-8-UTF-16-和-UTF-32"><a href="#UTF-8-UTF-16-和-UTF-32" class="headerlink" title="UTF-8, UTF-16 和 UTF-32"></a>UTF-8, UTF-16 和 UTF-32</h2><p><em>UTF-8</em>, <em>UTF-16</em> 和 <em>UTF-32</em> 是针对 <em>Unicode</em> 的三种编码方式,下面将一一介绍. 不过首先, 还是得简单了解一下 <em>Unicode</em> 的组成.</p>
+<p>前面说过 <em>Unicode</em> 使用 21<em>Bit</em> 来表示字符, 在这其中又分为<strong>基本多文种平面</strong>(<em>Basic Multilingual Plane，简称BMP</em>) 和<strong>补充平面</strong>, 每个平面拥有 2^16^ = 65,536 个可表示字符, 又称作<strong>码点</strong>. 它们的表示范围见下表, 摘自 <a href="https://zh.wikipedia.org/wiki/Unicode%E5%AD%97%E7%AC%A6%E5%B9%B3%E9%9D%A2%E6%98%A0%E5%B0%84" target="_blank" rel="noopener">wiki 百科</a>.</p>
+<table>
+<thead>
+<tr>
+<th>平面</th>
+<th>始末字符值</th>
+<th>中文名称</th>
+<th>英文名称</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0号平面</td>
+<td>U+0000 - U+FFFF</td>
+<td><strong>基本多文种平面</strong></td>
+<td>Basic Multilingual Plane，简称<strong>BMP</strong></td>
+</tr>
+<tr>
+<td>1号平面</td>
+<td>U+10000 - U+1FFFF</td>
+<td><strong>多文种补充平面</strong></td>
+<td>Supplementary Multilingual Plane，简称<strong>SMP</strong></td>
+</tr>
+<tr>
+<td>2号平面</td>
+<td>U+20000 - U+2FFFF</td>
+<td><strong>表意文字补充平面</strong></td>
+<td>Supplementary Ideographic Plane，简称<strong>SIP</strong></td>
+</tr>
+<tr>
+<td>3号平面</td>
+<td>U+30000 - U+3FFFF</td>
+<td><strong>表意文字第三平面</strong>（未正式使用<a href="https://zh.wikipedia.org/wiki/Unicode%E5%AD%97%E7%AC%A6%E5%B9%B3%E9%9D%A2%E6%98%A0%E5%B0%84#cite_note-1" target="_blank" rel="noopener">[1]</a>）</td>
+<td>Tertiary Ideographic Plane，简称<strong>TIP</strong></td>
+</tr>
+<tr>
+<td>4号平面至13号平面</td>
+<td>U+40000 - U+DFFFF</td>
+<td>（尚未使用）</td>
+<td></td>
+</tr>
+<tr>
+<td>14号平面</td>
+<td>U+E0000 - U+EFFFF</td>
+<td><strong>特别用途补充平面</strong></td>
+<td>Supplementary Special-purpose Plane，简称<strong>SSP</strong></td>
+</tr>
+<tr>
+<td>15号平面</td>
+<td>U+F0000 - U+FFFFF</td>
+<td>保留作为<strong>私人使用区（A区）</strong><a href="https://zh.wikipedia.org/wiki/Unicode%E5%AD%97%E7%AC%A6%E5%B9%B3%E9%9D%A2%E6%98%A0%E5%B0%84#cite_note-PUA-2" target="_blank" rel="noopener">[2]</a></td>
+<td>Private Use Area-A，简称<strong>PUA-A</strong></td>
+</tr>
+<tr>
+<td>16号平面</td>
+<td>U+100000 - U+10FFFF</td>
+<td>保留作为<strong>私人使用区（B区）</strong><a href="https://zh.wikipedia.org/wiki/Unicode%E5%AD%97%E7%AC%A6%E5%B9%B3%E9%9D%A2%E6%98%A0%E5%B0%84#cite_note-PUA-2" target="_blank" rel="noopener">[2]</a></td>
+<td>Private Use Area-B，简称<strong>PUA-B</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="UTF-16"><a href="#UTF-16" class="headerlink" title="UTF-16"></a>UTF-16</h3><p>实际情况来讲, 65,536个字符已经足够覆盖到我们日常所接触到的符号了, 这也是 <em>UTF-16</em> 使用 2<em>Byte</em> 作为字符存储单元的原因, 也叫做<strong>码元</strong>. 所有基本多语种平面内的字符都可以用一个 <em>UTF-16</em> 码元表示, 而对于罕见的补充平面内字符, 一个码元是不够用来表示的.</p>
+<p><em>UTF-16</em> 是变长编码, 在最开始没有补充平面的时候每个字符都由一个码元表示, 等到 <em>Unicode</em> 标准提出了补充平面的概念后, 它为这些超出一个码元表示能力的字符提供了一个映射关系, 使之映射到2个码元, 并且计算机能够分别字节归属单码元还是双码元, 不会存在理解上的误差.</p>
+<p>在基本多文种平面中, 预留了 <em>0xD800-0xDFFF</em> 之间的码位未被使用, 而补充平面内的码位都在 <em>0x10000-0x10FFFF</em> 这个范围内, 如果用它们的码位值减去 <em>0x10000</em>, 就刚好能得到一个位于 <em>0x0000-0xFFFFF</em> 范围的数字, 这些数字可以被一个 <em>20Bit</em> 的数字表示. 该数字的前10位加上 <em>0xD800</em>，就得到 <em>UTF-16</em> 双码元编码中的第一个码元, 该数字的后10位加上 <em>0xDC00</em>，就得到 <em>UTF-16</em> 双码元编码中的后一个码元.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/// 对于小于0xFFFF的即基本平面的字符，为两个字节</span></span><br><span class="line"><span class="type">U</span>+8D9E = <span class="number">0x8D9E</span>  <span class="comment">///对应的二进制格式为:10001101 10011110</span></span><br><span class="line"></span><br><span class="line"><span class="comment">/// 对出于辅助平面的字符</span></span><br><span class="line"><span class="comment">/// 对于U+1D306</span></span><br><span class="line">(<span class="number">0x1D306</span>-<span class="number">0x10000</span>) / <span class="number">0x400</span> + <span class="number">0xD800</span> = <span class="number">0xd834</span></span><br><span class="line">(<span class="number">0x1D306</span> - <span class="number">0x10000</span>) % <span class="number">0x400</span> + <span class="number">0xDC00</span> = <span class="number">0xdf06</span></span><br><span class="line"><span class="comment">// 最终两个码元都落在了保留区 0xD800-0xDFFF 内, 计算机读到这个码元的内容就知道是双码元字符的一部分了</span></span><br></pre></td></tr></table></figure>
+<h3 id="UTF-8"><a href="#UTF-8" class="headerlink" title="UTF-8"></a>UTF-8</h3><p><em>UTF-8</em> 也是可变长编码, 使用1-4个 <em>Byte</em> 来表示一个字符, 一个码元只有 <em>1Byte</em>. 它定义了一个巧妙的编码规则, 完全兼容了 <em>ASCII</em>. 对于 <em>U+0000-U+007F</em> 之间的 <em>ASCII</em> 码, 用 <em>UTF-8</em> 表示就是 <em>0x0xxxxxxx</em>, 跟 <em>ASCII</em> 完全一样的一个码元.</p>
+<p>对于大于 <em>U+007F</em> 的非 <em>ASCII</em> 码, 则采用填格子的方式进行编码, 参照下表.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Unicode</span> 字符:                <span class="type">UTF</span>-<span class="number">8</span> 码:</span><br><span class="line"><span class="type">U</span>+<span class="number">00000000</span> - <span class="type">U</span>+0000007F:    0xxxxxxx      			<span class="comment">///表示ASCII</span></span><br><span class="line"><span class="type">U</span>+<span class="number">00000080</span> - <span class="type">U</span>+000007FF:    110xxxxx 10xxxxxx      </span><br><span class="line"><span class="type">U</span>+<span class="number">00000800</span> - <span class="type">U</span>+0000FFFF:    1110xxxx 10xxxxxx 10xxxxxx</span><br><span class="line"><span class="type">U</span>+<span class="number">00010000</span> - <span class="type">U</span>+001FFFFF:    11110xxx 10xxxxxx 10xxxxxx 10xxxxxx</span><br></pre></td></tr></table></figure>
+<p>以’:blush:’为例, <em>Unicode</em> 码为 <em>U+1F60A</em>, 查表位于 <em>U+00010000-U+001FFFFF</em> 区间. </p>
+<p>转换成二进制 <em>11111011000001010</em>, 依次填入所对应的格子里, 得到 11110111 10110110 10000010 10100000, 就是该字符所对应的 <em>UTF-8</em> 编码.</p>
+<h3 id="UTF-32"><a href="#UTF-32" class="headerlink" title="UTF-32"></a>UTF-32</h3><p><em>UTF-32</em> 更为简单粗暴, 一个码元 <em>4Bit</em>, 完全能够覆盖到所有 <em>Unicode</em> 字符. 但由于空间上的低效, 一般不被使用.</p>
+<h2 id="Objective-C"><a href="#Objective-C" class="headerlink" title="Objective-C"></a>Objective-C</h2><p><em>OC</em> 中的 <em>NSString</em> 对象实际上代表着使用 <em>UTF-16</em> 编码的码元数组, 而返回字符串长度的 <em>length:</em> 方法则会直接返回码元的个数. 那么问题来了, 并不是所有的 <em>Unicode</em> 字符都可以使用1个码元表示, 因此 <em>NSString</em> 在这方面存在一些缺陷.</p>
+<p>并且 <em>Unicode</em> 中还存在着<strong>组合字符</strong>这一现象, é 可以使用 <em>U+00E9</em> 来表示, 也可以使用 <em>U+0065</em> (代表字母 <em>e</em>) 后跟一个尖音符号 <em>U+0301</em> 来表示, 二者在输出的时候表现一模一样, 但是在获取长度方面一样有缺陷.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">NSString *string = @&quot;:grinning:&quot;;</span><br><span class="line">   NSLog(@&quot;%@&quot;, @(string.length));								// 2</span><br><span class="line"></span><br><span class="line">NSString *eString1 = @&quot;\u00e9&quot;;</span><br><span class="line">   NSLog(@&quot;%@ length is %@&quot;, eString1, @(eString1.length));	// é length is 1</span><br><span class="line"></span><br><span class="line">   NSString *eString2 = @&quot;e\u0301&quot;;</span><br><span class="line">   NSLog(@&quot;%@ length is %@&quot;, eString2, @(eString2.length));	// é length is 2</span><br></pre></td></tr></table></figure>
+<p>因为这个缺陷, 在随机访问, 遍历, 比较等对字符串的操作一样会遇到跟人类直接感官不一致的问题.</p>
+<h2 id="Swift-设计原则"><a href="#Swift-设计原则" class="headerlink" title="Swift 设计原则"></a>Swift 设计原则</h2><p>为了解决这个问题, <em>Swift</em> 采用了一种抽象的方式来存储字符串, <strong>开发者根本不需要关心其到底是什么编码</strong>. 开发者对 <em>String</em> 的访问和操作都是以 <em>Character</em> 为单位的, 而每一个 <em>Character</em> 实例都代表一个 <strong>可扩展字形群集</strong>(<em>extended grapheme cluster</em>, 该翻译来源于极客学院 Swift 教程).</p>
+<p>简单来说, 就是 <em>Character</em> 就代表着一个人类肉眼所见的一个字符, 不管该字符是否由多个 <em>Unicode</em> 字符组成. :umbrella: (<em>U+2614 U+FE0F</em>), é(<em>U+0065 U+0301</em>) 通通代表着一个 <em>Character</em>. 这样就避免了使用 <em>count</em>方法, 遍历, 比较的时候产生与人类认知不相符的结论.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> sunString = <span class="string">"今天天气真好:sunny:"</span></span><br><span class="line">   <span class="built_in">print</span>(<span class="string">"\(sunString) last character is \(sunString.last!)"</span>)  <span class="comment">// 今天天气真好:sunny: last character is :sunny:</span></span><br><span class="line"></span><br><span class="line">   <span class="keyword">var</span> rainString = <span class="string">"又特么下雨了\u&#123;2614&#125;\u&#123;fe0f&#125;"</span></span><br><span class="line">   <span class="built_in">print</span>(<span class="string">"\(rainString) count is \(rainString.count)"</span>)			<span class="comment">// 又特么下雨了:umbrella: count is 7</span></span><br></pre></td></tr></table></figure>
+<p>那么问题来了, 为什么 <strong><em>String</em> 不提供直接使用整数下标进行访问的接口</strong>, 而要使用 <em>index(after:)</em>, <em>index(before:)</em> 这样复杂的接口来生成访问下标的接口呢?</p>
+<p>原因有两个:</p>
+<ol>
+<li>使用下标访问字符串并不是一个必要的操作.</li>
+<li><strong>使用整数作为下标不是一个正确的行为</strong>, 会让开发者认为自己在操作一个线性的集合, 所有的访问操作都是常数级的复杂度. 但 <em>Character</em> 实际存储并不一定是固定内存, 使用整数下标访问实际上伴随着遍历的过程, 线性复杂度. 而 <em>index(after:)</em>, <em>index(before:)</em>  这样设计接口不仅能让开发者直观感受到访问的开销, 并且在遍历的时候连续调用 <em>index(after:)</em> 在上一位置接着扫描, 提高了运行效率.</li>
+</ol>
+<p>不过还是有些场景是编码敏感的, 为此 <em>Swift</em> 同样提供了访问各种编码视图的接口.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> string = <span class="string">"今天天气真不错:grinning:"</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(<span class="string">"\(string.utf8.count)"</span>)				<span class="comment">// 25</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">"\(string.utf16.count)"</span>)				<span class="comment">// 9</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">"\(string.unicodeScalars.count)"</span>)		<span class="comment">// 8</span></span><br></pre></td></tr></table></figure>
+<h2 id="Swift4"><a href="#Swift4" class="headerlink" title="Swift4"></a>Swift4</h2><p><em>Swift4</em> 作为一个改进版本, 对字符串同样进行了一些提高易用性的修改(别想了, 不会让你用整数访问下标的).</p>
+<ol>
+<li><p>多行字符串. <em>Swift4</em> 提供了支持多行的字符串字面量表达方式.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(</span><br><span class="line">        <span class="string">""</span><span class="string">"</span></span><br><span class="line"><span class="string">        :oncoming_automobile:  Test Drive</span></span><br><span class="line"><span class="string">        --------------</span></span><br><span class="line"><span class="string">        Quickly try out any Swift pod or framework in a playground.</span></span><br><span class="line"><span class="string">        Usage:</span></span><br><span class="line"><span class="string">        - Simply pass a list of pod names or URLs that you want to test drive.</span></span><br><span class="line"><span class="string">        - You can also specify a platform (iOS, macOS or tvOS) using the '-p' option</span></span><br><span class="line"><span class="string">        - To use a specific version or branch, use the '-v' argument (or '-m' for master)</span></span><br><span class="line"><span class="string">        Examples:</span></span><br><span class="line"><span class="string">        - testdrive Unbox Wrap Files</span></span><br><span class="line"><span class="string">        - testdrive https://github.com/johnsundell/unbox.git Wrap Files</span></span><br><span class="line"><span class="string">        - testdrive Unbox -p tvOS</span></span><br><span class="line"><span class="string">        - testdrive Unbox -v 2.3.0</span></span><br><span class="line"><span class="string">        - testdrive Unbox -v swift3</span></span><br><span class="line"><span class="string">        "</span><span class="string">""</span></span><br><span class="line">    )</span><br></pre></td></tr></table></figure>
+<p>​</p>
+</li>
+<li><p>在之前的版本中, <em>String</em> 一直遵循着 <em>collection</em> 协议, 使得开发者可以像操作集合一样操作 <em>String</em>. 在 <em>Swift4</em> 中, <em>String</em> 直接被作为了 <em>collection</em> 类型, 意味着开发者能够简单的把它当做 <em>a collection of characters</em>.</p>
+</li>
+<li><p>新的生成 <em>SubString</em> 的 API.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> substring = string[index...]</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>在C语言中, 字符串就是一串非0序列的 <em>Byte</em> 数组, 获取长度都需要整个遍历字符串, 对于 Unicode 字符则提供了额外的 <em>wchar_t</em> 类型.</p>
+<p>而 <em>Java, Objective-c</em> 这些语言则将字符串看成一堆 <em>2Byte</em> 码元的集合, 这跟当时的环境有关系. <em>Unicode</em> 在1991年被提出, 当时总计7,161个字符, 直至1999年也才收录49,259个字符. 如今流行的一大批编程语言都是在这个时间点之前诞生. 等到了 <em>2Byte</em> 满足不了字符展示需求的时候, 这些语言要再改变字符串的设计为时已晚.</p>
+<p>幸运的是 <em>Swift</em> 开发者们可以享受到 <em>Swift</em> 对字符串设计所带来的便利性, 开发者不用再去关心各种 <em>Unicode</em>, 组合字符, 编码格式. <strong>字符就只是字符.</strong> 新上手的开发者可能会对不能使用整形下标访问字符串感到不习惯, 不过无所谓了, <em>they will get used to it</em> 不是苹果的一贯作风嘛. ┑(￣Д ￣)┍</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="http://www.ruanyifeng.com/blog/2007/10/ascii_unicode_and_utf-8.html" target="_blank" rel="noopener">字符编码笔记：ASCII，Unicode和UTF-8</a></li>
+<li><a href="http://www.cnblogs.com/malecrab/p/5300503.html" target="_blank" rel="noopener">细说：Unicode, UTF-8, UTF-16, UTF-32, UCS-2, UCS-4</a></li>
+<li><a href="http://www.jianshu.com/p/35f5f7d07732" target="_blank" rel="noopener">Unicode和UTF-8、UTF-16、UTF-32</a></li>
+<li><a href="https://zh.wikipedia.org/zh-cn/Unicode" target="_blank" rel="noopener">Unicode</a></li>
+<li><a href="https://medium.com/%40johnsundell/exploring-the-new-string-api-in-swift-4-ce7d2c1cae00" target="_blank" rel="noopener">Exploring the new String API in Swift 4</a></li>
+<li><a href="https://www.mikeash.com/pyblog/friday-qa-2015-11-06-why-is-swifts-string-api-so-hard.html" target="_blank" rel="noopener">Why is Swift’s String API So Hard?</a></li>
+<li><a href="https://juejin.im/entry/583056e42f301e00596401f5" target="_blank" rel="noopener">Swift 中 “难用” 的字符串</a></li>
+<li><a href="https://objccn.io/issue-9-1/" target="_blank" rel="noopener">NSString 与 Unicode</a></li>
+</ul>
+
+
+                
+            </div>
+
+            <!-- Comments -->
+            
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    
+
+
+                </div>
+            
+        </div>
+    </div>
+</article>
+
+    <!-- Footer -->
+    <hr />
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    
+
+                    
+
+                    
+                        <li>
+                            <a href="https://github.com/klugjo/hexo-theme-clean-blog" target="_blank">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                    
+
+                    
+
+                    
+
+                    
+                </ul>
+                <p class="copyright text-muted">&copy; 2018 Maize<br></p>
+                <p class="copyright text-muted">Original Theme <a target="_blank" href="http://startbootstrap.com/template-overviews/clean-blog/">Clean Blog</a> from <a href="http://startbootstrap.com/" target="_blank">Start Bootstrap</a></p>
+                <p class="copyright text-muted">Adapted for <a target="_blank" href="https://hexo.io/">Hexo</a> by <a href="http://www.codeblocq.com/" target="_blank">Jonathan Klughertz</a></p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+    <!-- After footer scripts -->
+    
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Bootstrap -->
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

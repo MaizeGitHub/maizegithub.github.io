@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="[TOC]
+原文发在美团内网, 文中引用的一些内部资料无法访问.
+前言当 Pod 被创建出来, 工作才刚刚开始.
+为了向外提供统一的功能支持, 我们将一堆杂乱无章的文件抽离出来, 创建 SDK. 恭喜你, 代码已经完成了受精的过程, 但之后漫长的维护和迭代才能让 SDK 真正的发育成长, 成为稳定的">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="Maize">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="Pod 维护心得"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="Maize的小站"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+        <meta name="twitter:card" content="summary" />
+    
+
+    <!-- Title -->
+    
+    <title>Pod 维护心得 - Maize的小站</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet"/>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+    <link href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Google Analytics -->
+    
+
+
+    <!-- favicon -->
+    
+	
+</head>
+
+
+<body>
+
+    <!-- Menu -->
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">iOS 开发者, 现在职腾讯.</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                
+                    <li>
+                        <a href="/">
+                            
+                                Home
+                            
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="/archives">
+                            
+                                Archives
+                            
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="https://github.com/maizegithub">
+                            
+                                <i class="fa fa-github fa-stack-2x"></i>
+                            
+                        </a>
+                    </li>
+                
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+
+    <!-- Main Content -->
+    <!-- Page Header -->
+<!-- Set your background image for this header in your post front-matter: cover -->
+
+<header class="intro-header" style="background-image: url('http://www.codeblocq.com/assets/projects/hexo-theme-clean-blog/img/home-bg.jpg')">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <h1>Pod 维护心得</h1>
+                    
+                    <h2 class="post-subheading">
+                        维护美团账户 SDK 时所产出的一些个人心得.
+                    </h2>
+                    
+                    <span class="meta">
+                        <!-- Date and Author -->
+                        
+                        
+                            2017-04-02
+                        
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Tags and categories -->
+           
+                <div class="col-lg-4 col-lg-offset-2 col-md-5 col-md-offset-1 post-tags">
+                    
+                        
+
+
+<a href="/tags/CocoaPods/">#CocoaPods</a>
+
+
+                    
+                </div>
+                <div class="col-lg-4 col-md-5 post-categories">
+                    
+                </div>
+            
+
+            <!-- Gallery -->
+            
+
+            <!-- Post Main Content -->
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <p>[TOC]</p>
+<p><strong>原文发在美团内网, 文中引用的一些内部资料无法访问.</strong></p>
+<h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>当 Pod 被创建出来, 工作才刚刚开始.</p>
+<p>为了向外提供统一的功能支持, 我们将一堆杂乱无章的文件抽离出来, 创建 SDK. 恭喜你, 代码已经完成了受精的过程, 但之后漫长的维护和迭代才能让 SDK 真正的发育成长, 成为稳定的可交付产品.</p>
+<p>下面是我在维护 SDK 方面的一些经验, 希望能为后来同学提供参考.</p>
+<h3 id="搭建"><a href="#搭建" class="headerlink" title="搭建"></a>搭建</h3><ol>
+<li><p><strong>资源路径</strong></p>
+<p> Pod 指定资源文件的方式一般有两种, resources 以及 resource_bundles, 其中后者是为了解决 resources 有可能导致的重名问题提供的解决方案.</p>
+<p> <strong>resources</strong> : 数组形式指定资源路径, 这些资源文件会在 build 的时候拷贝到 target 的 mainBundle 中去. 这样在集成多个 Pod 的时候很容易出现资源文件同名的情况.</p>
+<p> <strong>resource_bundles</strong> : 字典形式指定资源路径, key 值指定 bundle 名称, 在 bundle 层次做了区分, 减少了资源文件重名的可能性, 只有在少数情况下才可能出现 bundle 重名的情况.</p>
+ <figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">s.resources = [<span class="string">'SAKPlatformBusinessChannel/Assets/xibs/*.xib'</span>, <span class="string">'SAKPlatformBusinessChannel/Assets/xcassets/*.xcassets'</span>]</span><br><span class="line"></span><br><span class="line">s.ios.resource_bundles = &#123;<span class="string">'SAKPlatformBusinessChannel'</span> =&gt; [<span class="string">'SAKPlatformBusinessChannel/Bundles/**/*.&#123;xib,storyboard,png,plist,json&#125;'</span>]&#125;</span><br></pre></td></tr></table></figure>
+<p> 在实际使用过程中, 对于业务 SDK, 不需要公开自己内部的资源文件, 建议使用 resource_bundles 的形式指定内部资源文件的路径.<br> 需要注意的是在 SDK 内部, 不能直接通过 imageNamed: 访问资源文件, 建议添加 UIImage 的 category, 自定义访问方法.</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">+ (UIImage *)acc_imageNamed:(NSString *)name</span><br><span class="line">&#123;</span><br><span class="line">    return [UIImage imageNamed:[@&quot;SAKAccount.bundle&quot; stringByAppendingPathComponent:name]];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> ​</p>
+</li>
+</ol>
+<ol>
+<li><p><strong>工程配置</strong></p>
+<ul>
+<li><p>建议在 Pod 的 xcconfig 选项中关闭 _USE<em>HEADERMAP</em>, 并开启 _GCC_TREAT_WARNINGS_AS<em>ERRORS</em>. 前者不允许使用依赖 Pod 的私有头文件, 后者将 Pod 运行的警告升级为 Error 处理.</p>
+</li>
+<li><p>对于业务 SDK 来说, 在 Podfile 中引入 Flex 是非常有必要的, 可以非常方便的进行 UI 上的调试.</p>
+</li>
+<li>在搭建 Demo 之后, 可以以 TableView 的形式为 SDK 内某些组件提供快捷入口, 供测试和功能预览.</li>
+</ul>
+</li>
+<li><p><strong>依赖管理</strong></p>
+<ul>
+<li><p>对有明显接口调用的依赖库, 应该在 Podspec 中显示声明对其的依赖.</p>
+</li>
+<li><p>依赖即是成本. 依赖链过重不仅会导致发版太慢, 依赖管理麻烦, 还会提高业务方接入成本. 除去一些强依赖的库, 只轻度依赖某一点或几点功能的库, 应该考虑是否可以通过其它方式解除耦合.</p>
+</li>
+<li>如果没有特殊需求, 建议对其它库的依赖采用 ~&gt;<em>.</em> 的形式, 依赖版本不要写太细, 降低使用方产生依赖冲突的概率.</li>
+</ul>
+</li>
+<li><p><strong>PCH 文件和 _prefix_header<em>contents</em></strong></p>
+<ul>
+<li><p>尽量不要使用, 提升开发效率有限, 还会拖慢编译时间.</p>
+</li>
+<li><p>最关键的是, 在编译上层业务方文件的时候, 如果依赖了 SDK 的头文件, 头文件展开后如果出现了上层业务方没有声明的符号, 会直接编译错误. 而在 SDK 内部, 由于可以由 PCH 文件引入该符号, 会掩盖该错误.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>分支和发版策略</strong></p>
+<ul>
+<li><p>单 dev 分支开发已经满足绝大多数开发频度低的 SDK 的需求. 在出现跨版本开发时, 提前拉出待开发的分支 feature-某某业务, 在拆分子任务后, 将需求代码以子任务为单位一点一点往 feature-某某业务 上提交代码. 待功能稳定后, 再将该业务开发分支合入 dev 分支.</p>
+</li>
+<li><p>版本号升级参照版本号策略. 在有接口变动时至少要升级次级版本号.</p>
+</li>
+<li>跟随 imeituan 业务迭代的 SDK 可以跟随 imeituan 的发布策略, 每个对应线上版本升级一下次级版本号, bugfix 阶段发版升级三级小版本号.</li>
+<li><p>基础 SDK 为了避免不稳定的版本流出, 可以采用以下两种发布方式:</p>
+<ol>
+<li><p>搭建完善的测试工程, 基于分支和 commit 出测试包, 待稳定后再发布正式版本.</p>
+</li>
+<li><p>发布 debug 版本集成主工程, 待稳定后再发布正式版本. 目前发版工具不支持特殊版本号, 需要手动修改 Podspec, 打 tag 并通过发布 Job 完成发布.</p>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+</ol>
+<h3 id="质量"><a href="#质量" class="headerlink" title="质量"></a>质量</h3><ol>
+<li><strong>warning 数控制</strong><ul>
+<li>warning 是代码的潜在风险, 建议使用合适手段清除所有代码 warning. 不推荐使用 #pragma clang diagnostic 的方式消除警告.</li>
+<li>warning 数降到0之后, 开启 _GCC_TREAT_WARNINGS_AS<em>ERRORS</em>, 保持长期对于 warning 数的控制.</li>
+</ul>
+</li>
+</ol>
+<ol>
+<li><p><strong>单元测试</strong></p>
+<p>需求迭代频繁的业务 SDK 可以忽略.<br>对于功能相对稳定的 SDK, 提前编写单元测试可以提供调用者的观察角度来设计接口, 并且验证每一个功能单元的正确性, 在维护时也可以提供文档的指导作用.</p>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">target <span class="string">"SAKAccountDemoTests"</span> <span class="keyword">do</span></span><br><span class="line">  pod <span class="string">'Specta'</span>, <span class="string">'~&gt; 1.0.3'</span>        /<span class="regexp">/ BDD 测试框架, 提供对接口行    为的    预定义描述</span></span><br><span class="line"><span class="regexp">  pod 'Expecta', '~&gt; 1.0.1'       /</span><span class="regexp">/ 断言框架, 提供强大的断言支    持</span></span><br><span class="line"><span class="regexp">  pod 'OHHTTPStubs', '~&gt; 4.2.0'   /</span><span class="regexp">/ Mock 网络请求数据, 提供稳    定一致    的测试环境</span></span><br><span class="line"><span class="regexp">  pod 'OCMock', '~&gt; 3.1.5'        /</span><span class="regexp">/ 构造 OC 对象完成测试</span></span><br><span class="line"><span class="regexp">end</span></span><br></pre></td></tr></table></figure>
+<p>单元测试不需要追求覆盖率, 一般来说完成对重要数据逻辑(VM, M)的覆盖就已经达到要求.<br>对于一些轻数据逻辑重 UI 交互的模块, 可以使用 UITest 完成测试覆盖.</p>
+</li>
+<li><p><strong>静态分析</strong><br>  参照业务方新接入静态分析指南.</p>
+</li>
+<li><p><strong>重复代码检测</strong><br>  Sonar 会周期性的对全 imeituan 工程进行扫描, 重复代码检测结果参见 Sonar报告.</p>
+</li>
+</ol>
+<h3 id="输入输出"><a href="#输入输出" class="headerlink" title="输入输出"></a>输入输出</h3><ol>
+<li><p><strong>私有头文件</strong><br> 私有头文件的意义是为了约束业务方使用 SDK 的方式, 以一个可控的使用方式来降低风险.<br> Pod 可以通过 _public_header<em>files</em> 或 _private_header<em>files</em> 来指定 Pod 的私有/公有头文件.</p>
+ <figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">s.public_header_files = <span class="string">'Yoda/Classes/PublicHeader/*.h'</span></span><br></pre></td></tr></table></figure>
+<p>  SDK 暴露的头文件跟 SDK 的功能定位息息相关, 在明确需要暴露的头文件后, 一般来说有两种方式管理这些头文件.</p>
+<ol>
+<li>新建 <em>PublicHeader</em> 目录, 将需要公开的头文件移到该目录下. 注意不要拷贝, 防止日后误操作出现两份头文件有差异的情况. 好处是结构清晰, 可以方便管理这些头文件.</li>
+<li>修改需要暴露的头文件文件名称, 如 xxxPublic.h, 在 Podspec 中通过 _Public.h 方式声明公开头文件. 好处是不破坏原有文件结构, _control+command+上下* 可以方便的切换.h .m 文件.</li>
+</ol>
+</li>
+</ol>
+<ol>
+<li><p><strong>接口文档</strong></p>
+<p> 对于 <em>PublicHeader</em>, 需要有详尽的接口文档为业务方提供调用参考. 需要提供如下几个方面的信息:</p>
+<pre><code>*   类的说明. 包括功能, 使用场景, 注意事项.
+*   属性说明. 充分利用好 _readOnly_, 防止对不可变属性的修改.
+*   接口说明. 包括功能, 参数描述.
+</code></pre><p> 一般来说, xcode8 以后在头文件中使用 <em>option+command+/</em> 已经满足了接入的需求.</p>
+</li>
+</ol>
+<ol>
+<li><p><strong>接入指南</strong></p>
+<p> 接入指南承担 SDK 的说明书作用, 一份好的接入指南可以让业务方在不需要打扰负责人的情况下完成对 SDK 的接入. 接入指南需要提供如下几个方面的信息:</p>
+<pre><code>*   接入版本. 防止业务方接入某些不建议接入版本.
+*   接入步骤. 详尽到小白用户也能按图索骥为最佳.
+*   配置文档. 仅仅针对于可定制的 SDK, 为业务方的 功能 / UI 定制提供参考.
+*   其它疑难问题. 某些功能的接入可能需要比较严苛的条件, 需要单列出来供业务方调试.
+</code></pre><p> 账户 SDK 接入指南 是一份相对比较完善的文档, 搭建在公司的文档平台上. 如有需要可以参照 美团仓库接入指南 搭建一个属于 SDK 的文档.</p>
+</li>
+</ol>
+<h3 id="对接业务方"><a href="#对接业务方" class="headerlink" title="对接业务方"></a>对接业务方</h3><ol>
+<li><strong>接口变动</strong><ul>
+<li>版本号升级参照版本号策略. 至少要升级次级版本号.</li>
+<li>废弃接口的做法:</li>
+</ul>
+<ol>
+<li>提供替代接口或解决方案.</li>
+<li>标明接口 <em>Deprecate</em>.</li>
+<li>周知业务方使用替代接口或解决方案.</li>
+<li>全源码搜索无调用或者一到两个版本后, 删除废弃接口.</li>
+</ol>
+<ul>
+<li>如需要在当前版本删除接口, 或者接口功能变动. 一定要全源码搜索调用方 + 大群周知 + 调用方周知.</li>
+</ul>
+</li>
+<li><strong>客服技巧</strong><ul>
+<li>不要直接回答接入方面的问题, 应该采取完善接入文档的方式, 在遇到该类问题时扔出一份接入文档.</li>
+<li>重复问题出现较多的时候, 维护 FAQ 提供给使用方, 并大群周知解决方案, 同步进度.</li>
+<li>以服务者的态度为业务方解决问题, 但尽量不要采用克隆业务方仓库, 还原业务方案发现场的方式来定位问题. 提供猜想和调查思路, 采用低成本的方式协助定位问题.</li>
+<li>根据问题影响范围, 潜在风险来定优先级, 按照优先级的顺序解决问题.</li>
+<li>客服时间太多说明 SDK 本身设计上或者代码上是有缺陷的, 除了代码, 还可以尝试从设计上来减少客诉.</li>
+<li>需求开发只对接平台 PM, 业务方有需求需要经过平台 PM 提出来并走排期.</li>
+<li>最后, 代码要有节操, 并不是业务方的什么需求都是要满足的~</li>
+</ul>
+</li>
+</ol>
+
+
+                
+            </div>
+
+            <!-- Comments -->
+            
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    
+
+
+                </div>
+            
+        </div>
+    </div>
+</article>
+
+    <!-- Footer -->
+    <hr />
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    
+
+                    
+
+                    
+                        <li>
+                            <a href="https://github.com/klugjo/hexo-theme-clean-blog" target="_blank">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                    
+
+                    
+
+                    
+
+                    
+                </ul>
+                <p class="copyright text-muted">&copy; 2018 Maize<br></p>
+                <p class="copyright text-muted">Original Theme <a target="_blank" href="http://startbootstrap.com/template-overviews/clean-blog/">Clean Blog</a> from <a href="http://startbootstrap.com/" target="_blank">Start Bootstrap</a></p>
+                <p class="copyright text-muted">Adapted for <a target="_blank" href="https://hexo.io/">Hexo</a> by <a href="http://www.codeblocq.com/" target="_blank">Jonathan Klughertz</a></p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+    <!-- After footer scripts -->
+    
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Bootstrap -->
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>

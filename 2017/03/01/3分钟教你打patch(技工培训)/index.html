@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="[TOC]
+这一篇实在是拖了很久, 因为 Bang 在 github 上的 JSPatch 实现原理详解其实对原理和使用已经讲解得很清楚了, 甚至还详细的记录了开发过程中遇到的问题和解决方法, 如果能花些时间从头到尾拜读一遍收获是非常大的.**
+然而大部分同学只会在写出线上 bug 之后才会对 JS">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="Maize">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="3分钟教你打patch"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="Maize的小站"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+        <meta name="twitter:card" content="summary" />
+    
+
+    <!-- Title -->
+    
+    <title>3分钟教你打patch - Maize的小站</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet"/>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+    <link href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Google Analytics -->
+    
+
+
+    <!-- favicon -->
+    
+	
+</head>
+
+
+<body>
+
+    <!-- Menu -->
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">iOS 开发者, 现在职腾讯.</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                
+                    <li>
+                        <a href="/">
+                            
+                                Home
+                            
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="/archives">
+                            
+                                Archives
+                            
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="https://github.com/maizegithub">
+                            
+                                <i class="fa fa-github fa-stack-2x"></i>
+                            
+                        </a>
+                    </li>
+                
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+
+    <!-- Main Content -->
+    <!-- Page Header -->
+<!-- Set your background image for this header in your post front-matter: cover -->
+
+<header class="intro-header" style="background-image: url('http://www.codeblocq.com/assets/projects/hexo-theme-clean-blog/img/home-bg.jpg')">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <h1>3分钟教你打patch</h1>
+                    
+                    <h2 class="post-subheading">
+                        这篇是在职美团时所写的技工培训流水账.
+                    </h2>
+                    
+                    <span class="meta">
+                        <!-- Date and Author -->
+                        
+                        
+                            2017-03-01
+                        
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Tags and categories -->
+           
+                <div class="col-lg-4 col-lg-offset-2 col-md-5 col-md-offset-1 post-tags">
+                    
+                        
+
+
+<a href="/tags/Javascript/">#Javascript</a>
+
+
+                    
+                </div>
+                <div class="col-lg-4 col-md-5 post-categories">
+                    
+                </div>
+            
+
+            <!-- Gallery -->
+            
+
+            <!-- Post Main Content -->
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <p>[TOC]</p>
+<p>这一篇实在是拖了很久, 因为 Bang 在 github 上的 <a href="https://github.com/bang590/JSPatch/wiki/JSPatch-%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E8%AF%A6%E8%A7%A3" target="_blank" rel="noopener">JSPatch 实现原理详解</a>其实对原理和使用已经讲解得很清楚了, 甚至还详细的记录了开发过程中遇到的问题和解决方法, 如果能花些时间从头到尾拜读一遍收获是非常大的.**</p>
+<p><strong>然而大部分同学只会在写出线上 bug 之后才会对 JSPatch 这一利器付出应得的重视(ノへ￣、)捂脸. 这个时候已经是时间不等人了, 接下来就用2分40秒的时间来学习一下如何打一个上佳的 patch.</strong></p>
+<h3 id="1-JSPatch-能做什么"><a href="#1-JSPatch-能做什么" class="headerlink" title="1. JSPatch 能做什么?"></a>1. JSPatch 能做什么?</h3><ul>
+<li><p>说话的方式简单点:</p>
+<p> 能通过 runtime 实现对<strong>现有方法的替换和新增</strong>.</p>
+</li>
+<li><p>小 bug, 不着急:</p>
+<p> 服务器下发 JS 脚本, 由系统库的 JSCore 引擎完成 JS 到 OC 的消息传递, OC 再通过 Runtime 完成方法的调用和替换. (<em>这也是市面上iOS几乎所有的动态下发代码的实现方式, <strong>脚本 -&gt;&gt; 解释器 -&gt;&gt; Runtime</strong></em>)</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">// 一个简单的 JS 到 OC 的消息传递</span><br><span class="line">JSContext *context = [[JSContext alloc] init];</span><br><span class="line">context[@&quot;hello&quot;] = ^(NSString *msg) &#123;</span><br><span class="line">NSLog(@&quot;hello %@&quot;, msg);</span><br><span class="line">&#125;;</span><br><span class="line">[_context evaluateScript:@&quot;hello(&apos;word&apos;)&quot;];     //output hello word</span><br></pre></td></tr></table></figure>
+<p> 那么具体到 JSPatch, 他是如何实现对方法的替换的呢?<br> 首先, 在 App 启动时调用 <em>[JPEngine startEngine]</em>, 这个方法定义了一堆类似于上文 <code>hello</code> 的方法, 并且会加载 JSPatch.js 这个文件. 具体对脚本的解释执行请往下看.</p>
+</li>
+</ul>
+<h3 id="2-如何替换-新增-OC-方法"><a href="#2-如何替换-新增-OC-方法" class="headerlink" title="2. 如何替换/新增 OC 方法?"></a>2. 如何替换/新增 OC 方法?</h3><ul>
+<li><p>说话的方式简单点:</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">defineClass($ClassName, [  <span class="comment">// 不存在新增 property 时可省略该参数</span></span><br><span class="line">  $newProperty1,</span><br><span class="line">  $newProperty2</span><br><span class="line">  ], &#123;</span><br><span class="line">  $InstanceMethod1: <span class="function"><span class="keyword">function</span>(<span class="params">$args...</span>) </span>&#123;</span><br><span class="line"></span><br><span class="line">  &#125;,</span><br><span class="line">  $InstanceMethod2: <span class="function"><span class="keyword">function</span>(<span class="params">$args...</span>) </span>&#123;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line">&#125;, &#123;  <span class="comment">// 不存在类方法时可省略该参数</span></span><br><span class="line">  $ClassMethod1: <span class="function"><span class="keyword">function</span>(<span class="params">$args...</span>) </span>&#123;</span><br><span class="line"></span><br><span class="line">  &#125;,</span><br><span class="line">  $ClassMethod2: <span class="function"><span class="keyword">function</span>(<span class="params">$args...</span>) </span>&#123;</span><br><span class="line"></span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>小 bug, 不着急:<br> 在 JSPatch.js 文件中, 定义了一个很长的全局函数 <em>defineClass</em>, 这个函数的参数是我们传入的函数名, 属性名, (实例/类)方法名, 在做了一些保存新加的属性名/方法名的工作之后, 会调用_OC_defineClass(declaration, newInstMethods, newClsMethods) 向 OC 传递消息.<br> JPEgine 中有对应的 <em>defineClass</em> 方法, 接收到到 JS 传递过来消息之后, 会对需要替换的方法做 <em>replaceMethod</em>, 替换成系统方法 <strong>objc<em>msgForward</em>. 这样在调用该方法的时候会直接进入消息转发流程.<br> **有个常见的误区是 </strong>objc<em>msgForward</em> 到底做了哪些事情, 有人根据苹果开放出来的源码认为它做了完整的消息转发流程. 但是经过我的测试, __objc<em>msgForward</em> 只执行了 <em>forwardingTargetForSelector:</em> 及之后的消息转发流程, 不包括动态添加方法.**<br> 关键地方来了, JSPatch 将 <em>forwardInvocation:</em> 方法替换成了自己的静态函数 <em>JPForwardInvocation</em>, 这样每次向被 patch 替换的方法发送消息的时候, 就会进入 <em>JPForwardInvocation</em> 调用(如果没有被 <em>forwardingTargetForSelector</em> 拦住的话). <em>JPForwardInvocation</em> 则充当了 OC 到 JS 的调用桥梁, 负责在两者之间传递消息, 将 OC 的参数替换为 JS 所能识别的, 再获取预先在 <em>defineClass</em> 阶段获取的该方法的 JS 实现, 完成函数调用.</p>
+<p> <img src="https://ws3.sinaimg.cn/large/006tKfTcgy1fn2d4b1gq8j31kw0oytfk.jpg" alt="Patch"></p>
+</li>
+</ul>
+<h3 id="3-JS-如何识别-OC-关键字-方法"><a href="#3-JS-如何识别-OC-关键字-方法" class="headerlink" title="3.  JS 如何识别 OC 关键字/方法?"></a>3.  JS 如何识别 OC 关键字/方法?</h3><ul>
+<li><p>常用语法:</p>
+<p>|                    OC                    |                    JS                    |<br>| :————————————–: | :————————————–: |<br>|                   self                   |                   self                   |<br>|                  super                   |               self.super()               |<br>|                  _iVar                   |         self.valueForKey(‘iVar’)         |<br>| returnType (^)(paramType0 param0, paramType1 param1) | block(“paramType0, paramType1”, function(param0, param1) |<br>|  [object method0:param0 method1:param1]  |  object.method0_method1(param0, param1)  |</p>
+</li>
+<li><p>类方法: 类似于 [UIColor redColor], 需要在 defineClass 之前对 UIColor 进行声明, 多个用逗号隔开.</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">require</span>(<span class="string">'UIColor, class1, class2'</span>);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>block 内使用 self:</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> blockSelf = self;</span><br><span class="line">block(<span class="string">"paramType"</span>, <span class="function"><span class="keyword">function</span>(<span class="params">param0</span>) </span>&#123;</span><br><span class="line">  blockSelf;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h3 id="4-举个🌰"><a href="#4-举个🌰" class="headerlink" title="4. 举个🌰"></a>4. 举个🌰</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">- (void)thisMethodShouldBeRewrite:(BOOL force)</span><br><span class="line">&#123;</span><br><span class="line">  [super thisMethodShouldBeRewrite:YES];</span><br><span class="line"></span><br><span class="line">  self.view.backgroundColor = [UIColor redColor];</span><br><span class="line">  @weakify(self);</span><br><span class="line">  [self.model fetchSomeData:(BOOL *)force callBack:^(UIColor *color, NSError *error) &#123;</span><br><span class="line">    @strongify(self);</span><br><span class="line">    if (error) &#123;</span><br><span class="line">        self.customError = error;</span><br><span class="line">    &#125; else &#123;</span><br><span class="line">        self.view.backgroundColor = color;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;];</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>类名为 NSSomeClassName, 用 JS 重写一下:</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">require</span>(<span class="string">'UIColor'</span>);</span><br><span class="line">defineClass(<span class="string">'NSSomeClassName'</span>, &#123;</span><br><span class="line">  thisMethodShouldBeRewrite: <span class="function"><span class="keyword">function</span>(<span class="params">force</span>) </span>&#123;</span><br><span class="line">    self.super().thisMethodShouldBeRewrite(<span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line">    self.view().setBackgroundColor(UIColor.redColor());</span><br><span class="line">    <span class="keyword">var</span> weakSelf = __weak(self);</span><br><span class="line">    self.model().fetchSomeData_callBack(force, block(<span class="function"><span class="keyword">function</span>(<span class="params">color, error</span>) </span>&#123;</span><br><span class="line">        <span class="keyword">var</span> strongSelf = __strong(weakSelf);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (error) &#123;</span><br><span class="line">          self.setCustomError(error);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">          self.view().setBackgroundColor(color);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;));</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p><strong>更多语法可以直接参考 Bang 提供的<a href="https://github.com/bang590/JSPatch/wiki/JSPatch-%E5%9F%BA%E7%A1%80%E7%94%A8%E6%B3%95#" target="_blank" rel="noopener">基础用法</a>. 我不想写了…果爹最大.</strong></p>
+
+
+                
+            </div>
+
+            <!-- Comments -->
+            
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    
+
+
+                </div>
+            
+        </div>
+    </div>
+</article>
+
+    <!-- Footer -->
+    <hr />
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    
+
+                    
+
+                    
+                        <li>
+                            <a href="https://github.com/klugjo/hexo-theme-clean-blog" target="_blank">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                    
+
+                    
+
+                    
+
+                    
+                </ul>
+                <p class="copyright text-muted">&copy; 2018 Maize<br></p>
+                <p class="copyright text-muted">Original Theme <a target="_blank" href="http://startbootstrap.com/template-overviews/clean-blog/">Clean Blog</a> from <a href="http://startbootstrap.com/" target="_blank">Start Bootstrap</a></p>
+                <p class="copyright text-muted">Adapted for <a target="_blank" href="https://hexo.io/">Hexo</a> by <a href="http://www.codeblocq.com/" target="_blank">Jonathan Klughertz</a></p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+    <!-- After footer scripts -->
+    
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Bootstrap -->
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>
