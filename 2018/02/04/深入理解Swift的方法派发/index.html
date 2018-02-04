@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<!-- Head tag -->
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!--Description-->
+    
+        <meta name="description" content="[TOC]
+在Swift中的动与静一文中, 我详细的介绍了 Swift 中不同场景下方法的派发方式. 自认为在这方面的掌握已经炉火纯青, Swift 的运行机制了然于胸, 遇到问题就跃跃欲试分析一下背后的实现原理. 这种掌控万物的感觉一直持续到我被一个极其简单的问题难到了为止.
+一个极其简单的问题1">
+    
+
+    <!--Author-->
+    
+        <meta name="author" content="Maize">
+    
+
+    <!--Open Graph Title-->
+    
+        <meta property="og:title" content="深入理解Swift的方法派发"/>
+    
+
+    <!--Open Graph Description-->
+    
+
+    <!--Open Graph Site Name-->
+    <meta property="og:site_name" content="Maize的小站"/>
+
+    <!--Type page-->
+    
+        <meta property="og:type" content="article" />
+    
+
+    <!--Page Cover-->
+    
+
+        <meta name="twitter:card" content="summary" />
+    
+
+    <!-- Title -->
+    
+    <title>深入理解Swift的方法派发 - Maize的小站</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet"/>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- Custom Fonts -->
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+    <link href="//fonts.googleapis.com/css?family=Lora:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+    <link href="//fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="//oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="//oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+    <!-- Gallery -->
+    <link href="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.css" type="text/css" rel="stylesheet" />
+
+    <!-- Google Analytics -->
+    
+
+
+    <!-- favicon -->
+    
+	
+</head>
+
+
+<body>
+
+    <!-- Menu -->
+    <!-- Navigation -->
+<nav class="navbar navbar-default navbar-custom navbar-fixed-top">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header page-scroll">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">iOS 开发者, 现在职腾讯.</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                
+                    <li>
+                        <a href="/">
+                            
+                                Home
+                            
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="/archives">
+                            
+                                Archives
+                            
+                        </a>
+                    </li>
+                
+                    <li>
+                        <a href="https://github.com/maizegithub">
+                            
+                                <i class="fa fa-github fa-stack-2x"></i>
+                            
+                        </a>
+                    </li>
+                
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+
+    <!-- Main Content -->
+    <!-- Page Header -->
+<!-- Set your background image for this header in your post front-matter: cover -->
+
+<header class="intro-header" style="background-image: url('http://www.codeblocq.com/assets/projects/hexo-theme-clean-blog/img/home-bg.jpg')">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <div class="post-heading">
+                    <h1>深入理解Swift的方法派发</h1>
+                    
+                    <h2 class="post-subheading">
+                        这次不以规律解释行为, 而从源码窥视规律.
+                    </h2>
+                    
+                    <span class="meta">
+                        <!-- Date and Author -->
+                        
+                        
+                            2018-02-04
+                        
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Post Content -->
+<article>
+    <div class="container">
+        <div class="row">
+
+            <!-- Tags and categories -->
+           
+                <div class="col-lg-4 col-lg-offset-2 col-md-5 col-md-offset-1 post-tags">
+                    
+                        
+
+
+<a href="/tags/Swift/">#Swift</a>
+
+
+                    
+                </div>
+                <div class="col-lg-4 col-md-5 post-categories">
+                    
+                </div>
+            
+
+            <!-- Gallery -->
+            
+
+            <!-- Post Main Content -->
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <p>[TOC]</p>
+<p>在<a href="xxx.com">Swift中的动与静</a>一文中, 我详细的介绍了 <em>Swift</em> 中不同场景下方法的派发方式. 自认为在这方面的掌握已经炉火纯青, <em>Swift</em> 的运行机制了然于胸, 遇到问题就跃跃欲试分析一下背后的实现原理. 这种掌控万物的感觉一直持续到我被一个极其简单的问题难到了为止.</p>
+<h2 id="一个极其简单的问题"><a href="#一个极其简单的问题" class="headerlink" title="一个极其简单的问题"></a>一个极其简单的问题</h2><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">protocol</span> <span class="title">MyProtocol</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFunc</span><span class="params">()</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">MyProtocol</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFunc</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyClass</span>: <span class="title">MyProtocol</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFunc</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里有三个很简单的前置条件:</p>
+<ol>
+<li>协议 <strong>MyProtocol</strong>.</li>
+<li><strong>MyProtocol</strong> 的协议扩展.</li>
+<li>遵循协议的类 <strong>MyClass</strong>.</li>
+</ol>
+<p>其中, 协议中声明了 <em>testFunc</em> 函数, 并且在扩展中提供了 <em>testFunc</em> 的默认实现. 而 <em>MyClass</em> 在遵循协议的同时, 自己也提供了 <em>testFunc</em> 的实现.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> object: <span class="type">MyProtocol</span> = <span class="type">MyClass</span>()</span><br><span class="line">object.testFunc()</span><br></pre></td></tr></table></figure>
+<p>请尝试分析一下此处的方法派发方式.</p>
+<p>这种问题当然难不倒我, 参照<a href="xxx.com">Swift中的动与静</a>一文, 由于 <em>MyProtocol</em> 的提供了对 <em>testFunc</em> 的声明, 因此该调用会走函数表派发方式, 具体来讲, 由于 <em>object</em> 被声明为 <em>MyProtocol</em> 类型, 最后的方法派发会通过 <strong>Existential Container</strong> 实现函数表派发.</p>
+<p><strong>真正难倒我的是更简单的问题:</strong></p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> object: <span class="type">MyClass</span> = <span class="type">MyClass</span>()</span><br><span class="line">object.testFunc()</span><br></pre></td></tr></table></figure>
+<ol>
+<li>请尝试分析一下此处的方法派发方式.</li>
+<li>倘若 <em>MyClass</em> 没有提供 <em>testFunc</em> 的默认实现, 是怎样实现方法派发的.</li>
+</ol>
+<h2 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h2><p>问题仿佛根本没有问到点子上, 明明就是一次极其普通的函数调用, 因此, 我的直觉告诉我这应该是直接派发.</p>
+<h3 id="直接派发"><a href="#直接派发" class="headerlink" title="直接派发?"></a>直接派发?</h3><p>直接派发意味着编译期已经确定了函数地址, 为了证明我的猜想, 我做了一个实验.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MySubClass</span>: <span class="title">MyClass</span> </span>&#123;</span><br><span class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">func</span> <span class="title">testFunc</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> object: <span class="type">MyClass</span> = <span class="type">MySubClass</span>()</span><br><span class="line">object.testFunc()</span><br></pre></td></tr></table></figure>
+<p>在编译阶段, 编译器决议 <em>object</em> 的类型一定为 <em>MyClass</em>, 跟实际的实例变量是 <em>MyClass()</em> 或是 <em>MySubClass()</em> 没有关系. 因此在类型一致的前提下, <em>testFunc</em> 调用所产生的行为也应该是一致的.</p>
+<p>然而, 该处调用的是 <em>MySubClsss</em> 的 <em>testFunc</em> 方法, 而不是 <em>MyClass</em> 的 <em>testFunc</em>. 这说明方法调用区分了 <em>object</em> 的类型, 而<strong>只有在运行阶段才能真正确认 <em>object</em> 的类型</strong>.</p>
+<h3 id="动态派发"><a href="#动态派发" class="headerlink" title="动态派发?"></a>动态派发?</h3><p>由于各方面的文档已经明确表明了只有在将 <em>object</em> 声明为协议类型的时候, 才会出现 <em>Existential Container</em>  这种东西. 因此, 我猜想是不是没有通过 <em>Existential Container</em>, 而是直接使用了 <em>Protocol witness table(PWT)</em> 实现了动态派发?</p>
+<p>这似乎能够解释我做的实验, 在运行期根据 <em>object</em> 的类型在其 <em>PWT</em> 中找到方法对应的实现, 并且, 也能很好的解释我的另一个实验.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyClass</span>: <span class="title">MyProtocol</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MySubClass</span>: <span class="title">MyClass</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFunc</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> object: <span class="type">MyClass</span> = <span class="type">MySubClass</span>()</span><br><span class="line">object.testFunc()</span><br></pre></td></tr></table></figure>
+<p><em>MyClass</em> 不提供 <em>testFunc</em> 的实现, 参照<a href="xxx.com">Swift中的动与静</a>一文, <em>MySubClass</em> 中对于 <em>testFunc</em> 的实现也就不能<strong>注册</strong>进 <em>PWT</em> 中, 因此该函数最终只会调用 <em>MyProtocol</em> 提供的默认实现.</p>
+<h3 id="思考"><a href="#思考" class="headerlink" title="思考"></a>思考</h3><p>我好像得到了问题的答案, 却感觉越来越难以理解 <em>Swift</em> 了, 以前信手拈来的名词就像一个个死结, 只有当我尝试去深挖其中的实现时才发现是一团乱麻.</p>
+<ol>
+<li>根据<a href="https://developer.apple.com/videos/play/wwdc2016/416/" target="_blank" rel="noopener">Understanding swift performance</a>, <em>PWT</em> 是跟类和协议一起生成的. <em>PWT</em> 里面到底包含了哪些内容?</li>
+<li><em>MyClass</em> 遵循 <em>MyProtocol</em>, 未直接遵循协议的 <em>MySubClass</em> 究竟有没有 <em>PWT</em>?</li>
+<li>为什么查阅了很多资料都没有介绍 <em>PWT</em> 在 <em>ExistentialContainer</em> 外是如何使用的?</li>
+</ol>
+<p>就这样, 一个看起来非常的简单的问题困扰了我很长的一段时间, 并且翻阅了很多资料都绕过了这种场景的解释.似乎是一个根本不值得分析的问题.</p>
+<h2 id="SIL"><a href="#SIL" class="headerlink" title="SIL"></a>SIL</h2><p><em>Swift Intermediate Language(SIL)</em> 是 <em>Swift</em> 在编译过程中的中间产物, 不像汇编那么难以理解, 而又足够揭示 <em>Swift</em> 的运行机制.</p>
+<p>使用 <code>swiftc -emit-sil</code> 命令可以将 <em>swift</em> 文件编译成 <em>silgen(SIL 文件格式)</em> 文件, 为了方便阅读, 还需要使用 <code>xcrun swift-demangle</code> 命令将编译后的符号还原.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">protocol</span> <span class="title">MyProtocol</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFunc</span><span class="params">()</span></span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">extension</span> <span class="title">MyProtocol</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFunc</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MyClass</span>: <span class="title">MyProtocol</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFunc</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="声明为-Class-类型"><a href="#声明为-Class-类型" class="headerlink" title="声明为 Class 类型"></a>声明为 Class 类型</h3><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> object: <span class="type">MyClass</span> = <span class="type">MyClass</span>()</span><br><span class="line">object.testFunc()</span><br></pre></td></tr></table></figure>
+<p>使用命令 <code>swiftc -emit-sil ClassFunc.swift | xcrun swift-demangle &gt; ClassFunc.silgen</code> 获得 <em>silgen</em> 文件.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// function_ref MyClass.__allocating_init()</span></span><br><span class="line">%<span class="number">0</span> = function_ref @<span class="type">ClassFunc</span>.<span class="type">MyClass</span>.__allocating_init() -&gt; <span class="type">ClassFunc</span>.<span class="type">MyClass</span> : $<span class="meta">@convention</span>(method) (@thick <span class="type">MyClass</span>.<span class="type">Type</span>) -&gt; @owned <span class="type">MyClass</span> <span class="comment">// user: %2</span></span><br><span class="line">%<span class="number">1</span> = metatype $@thick <span class="type">MyClass</span>.<span class="type">Type</span>              <span class="comment">// user: %2</span></span><br><span class="line">%<span class="number">2</span> = apply %<span class="number">0</span>(%<span class="number">1</span>) : $<span class="meta">@convention</span>(method) (@thick <span class="type">MyClass</span>.<span class="type">Type</span>) -&gt; @owned <span class="type">MyClass</span> <span class="comment">// users: %6, %4, %5, %3</span></span><br><span class="line">debug_value %<span class="number">2</span> : $<span class="type">MyClass</span>, <span class="keyword">let</span>, name <span class="string">"object"</span>   <span class="comment">// id: %3</span></span><br><span class="line">%<span class="number">4</span> = class_method %<span class="number">2</span> : $<span class="type">MyClass</span>, #<span class="type">MyClass</span>.testFunc!<span class="number">1</span> : (<span class="type">MyClass</span>) -&gt; () -&gt; (), $<span class="meta">@convention</span>(method) (@guaranteed <span class="type">MyClass</span>) -&gt; () <span class="comment">// user: %5</span></span><br><span class="line">%<span class="number">5</span> = apply %<span class="number">4</span>(%<span class="number">2</span>) : $<span class="meta">@convention</span>(method) (@guaranteed <span class="type">MyClass</span>) -&gt; ()</span><br><span class="line">strong_release %<span class="number">2</span> : $<span class="type">MyClass</span>                    <span class="comment">// id: %6</span></span><br><span class="line">%<span class="number">7</span> = tuple ()                                   <span class="comment">// user: %8</span></span><br><span class="line"><span class="keyword">return</span> %<span class="number">7</span> : $()                                 <span class="comment">// id: %8</span></span><br></pre></td></tr></table></figure>
+<p>总共生成100多行中间码, 由于代码中注释的存在, 很容易就能提取到对应上面两行 <em>Swift</em> 代码的中间码.</p>
+<p>为了方便阅读指令, 苹果还提供了一份非常棒的文档 <a href="https://github.com/apple/swift/blob/master/docs/SIL.rst" target="_blank" rel="noopener">Swift Intermediate Language</a>, 用以查阅指令.</p>
+<p>那么阅读就显得简单多了, 可以看到最终对应到 <em>testFunc</em> 函数调用的指令有两条.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">%<span class="number">4</span> = class_method %<span class="number">2</span> : $<span class="type">MyClass</span>, #<span class="type">MyClass</span>.testFunc!<span class="number">1</span> : (<span class="type">MyClass</span>) -&gt; () -&gt; (), $<span class="meta">@convention</span>(method) (@guaranteed <span class="type">MyClass</span>) -&gt; () <span class="comment">// user: %5</span></span><br><span class="line">%<span class="number">5</span> = apply %<span class="number">4</span>(%<span class="number">2</span>) : $<span class="meta">@convention</span>(method) (@guaranteed <span class="type">MyClass</span>) -&gt; ()</span><br></pre></td></tr></table></figure>
+<ol>
+<li><code>class_method</code>: 该指令通过类的函数表来查找函数, 基于类的实际类型.</li>
+<li><code>apply</code>: 传递参数并执行函数.</li>
+</ol>
+<p>那么答案很明朗了, 采用了函数表派发的方式, 由 <em>MyClass</em>(或 <em>MyClass</em> 的子类) 执行对应方法, 由于我们实际类型为 <em>MyClass</em>, 因此最终调用的是 <em>MyClass</em> 的方法.</p>
+<h3 id="声明为-Protocol-类型"><a href="#声明为-Protocol-类型" class="headerlink" title="声明为 Protocol 类型"></a>声明为 Protocol 类型</h3><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> object: <span class="type">MyProtocol</span> = <span class="type">MyClass</span>()</span><br><span class="line">object.testFunc()</span><br></pre></td></tr></table></figure>
+<p>我们已经知道声明为 <em>Protocol</em> 会使用 <em>Existential Container</em> 进行动态的方法派发, 接下来看看是如何在 <em>SIL</em> 中体现的. </p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">%<span class="number">0</span> = alloc_stack $<span class="type">MyProtocol</span>, <span class="keyword">let</span>, name <span class="string">"object"</span> <span class="comment">// users: %10, %9, %6, %1</span></span><br><span class="line">%<span class="number">1</span> = init_existential_addr %<span class="number">0</span> : $*<span class="type">MyProtocol</span>, $<span class="type">MyClass</span> <span class="comment">// user: %5</span></span><br><span class="line"><span class="comment">// 省略无关代码</span></span><br><span class="line">%<span class="number">6</span> = open_existential_addr <span class="comment">// 省略无关代码</span></span><br><span class="line">%<span class="number">7</span> = witness_method  <span class="comment">// 省略无关代码</span></span><br><span class="line">%<span class="number">8</span> = apply  <span class="comment">// 省略无关代码 </span></span><br><span class="line"><span class="comment">// 省略无关代码</span></span><br></pre></td></tr></table></figure>
+<p>对比之前的代码, 可以发现在生成 <em>object</em> 的时候, 使用的是 <code>init_existential_addr</code> 指令, 该指令会生成 <em>Existential Container</em> 结构, 包裹着实例变量和协议对应的 <em>PWT</em>.</p>
+<p>为了找到 <em>testFunc</em> 的函数地址, 可以看到有两条关键指令:</p>
+<ol>
+<li><code>open_existential_addr</code>: 打开 <em>Existential Container</em>, 获取包裹对象(<em>object</em>)的地址.</li>
+<li><code>witness_method</code>: 通过 <em>PWT</em> 获取对应的函数地址.</li>
+</ol>
+<p>文件里同样包含了 <em>MyClass</em> 所对应的 <em>PWT</em>.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sil_witness_table hidden <span class="type">MyClass</span>: <span class="type">MyProtocol</span> module <span class="type">ClassFunc</span> &#123;</span><br><span class="line">  method #<span class="type">MyProtocol</span>.testFunc!<span class="number">1</span>: &lt;<span class="type">Self</span> <span class="keyword">where</span> <span class="type">Self</span> : <span class="type">MyProtocol</span>&gt; (<span class="type">Self</span>) -&gt; () -&gt; () : @<span class="class"><span class="keyword">protocol</span> <span class="title">witness</span> <span class="title">for</span> <span class="title">ClassFunc</span>.<span class="title">MyProtocol</span>.<span class="title">testFunc</span>() -&gt; () <span class="title">in</span> <span class="title">conformance</span> <span class="title">ClassFunc</span>.<span class="title">MyClass</span> : <span class="title">ClassFunc</span>.<span class="title">MyProtocol</span> <span class="title">in</span> <span class="title">ClassFunc</span>	// <span class="title">protocol</span> <span class="title">witness</span> <span class="title">for</span> <span class="title">MyProtocol</span>.<span class="title">testFunc</span>() <span class="title">in</span> <span class="title">conformance</span> <span class="title">MyClass</span></span></span><br><span class="line"><span class="class">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>可以看到虽然 <em>MyProtocol</em> 提供了默认实现, <em>MyClass</em> 也提供了自己的实现,  <em>PWT</em> 中仍然只有一个函数, <code>@protocol witness for ClassFunc.MyProtocol.testFunc</code>.</p>
+<p>在文件中同样可以找到该函数的 <em>SIL</em> 实现.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// protocol witness for MyProtocol.testFunc() in conformance MyClass</span></span><br><span class="line"><span class="comment">// 省略无关代码</span></span><br><span class="line">bb0(%<span class="number">0</span> : $*<span class="type">MyClass</span>):</span><br><span class="line">  <span class="comment">// 省略无关代码</span></span><br><span class="line">  %<span class="number">3</span> = class_method %<span class="number">1</span> : $<span class="type">MyClass</span>, #<span class="type">MyClass</span>.testFunc!<span class="number">1</span> : (<span class="type">MyClass</span>) -&gt; () -&gt; (), $<span class="meta">@convention</span>(method) (@guaranteed <span class="type">MyClass</span>) -&gt; () <span class="comment">// user: %4</span></span><br><span class="line">  %<span class="number">4</span> = apply %<span class="number">3</span>(%<span class="number">1</span>) : $<span class="meta">@convention</span>(method) (@guaranteed <span class="type">MyClass</span>) -&gt; ()</span><br><span class="line">  <span class="comment">// 省略无关代码</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在这个函数中有一个熟悉的指令 <code>class_method</code>, 说明最终的函数地址依然是根据对象的实际类型, 通过函数表获取的.</p>
+<h2 id="Protocol-Witness-Table"><a href="#Protocol-Witness-Table" class="headerlink" title="Protocol Witness Table"></a>Protocol Witness Table</h2><p>在阅读 <em>SIL</em> 的过程中, <em>PWT</em> 的内容是最出乎我的意料的. </p>
+<p>当 <em>MyProtocol</em> 提供了 <em>testFunc</em> 的默认实现, 并且 <em>MyClass</em> 也提供了实现的情况下, <em>MyClass</em> 遵循该协议所生成的 <em>PWT</em> 却只有孤零零的一个函数, 该函数再通过函数表找到最终调用的方法.</p>
+<p>那么, 倘若 <em>MyClass</em> 不提供 <em>testFunc</em> 的实现呢?</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sil_witness_table hidden <span class="type">MyClass</span>: <span class="type">MyProtocol</span> module <span class="type">ClassFunc</span> &#123;</span><br><span class="line">  method #<span class="type">MyProtocol</span>.testFunc!<span class="number">1</span>: &lt;<span class="type">Self</span> <span class="keyword">where</span> <span class="type">Self</span> : <span class="type">MyProtocol</span>&gt; (<span class="type">Self</span>) -&gt; () -&gt; () : @<span class="class"><span class="keyword">protocol</span> <span class="title">witness</span> <span class="title">for</span> <span class="title">ClassFunc</span>.<span class="title">MyProtocol</span>.<span class="title">testFunc</span>() -&gt; () <span class="title">in</span> <span class="title">conformance</span> <span class="title">ClassFunc</span>.<span class="title">MyClass</span> : <span class="title">ClassFunc</span>.<span class="title">MyProtocol</span> <span class="title">in</span> <span class="title">ClassFunc</span>	// <span class="title">protocol</span> <span class="title">witness</span> <span class="title">for</span> <span class="title">MyProtocol</span>.<span class="title">testFunc</span>() <span class="title">in</span> <span class="title">conformance</span> <span class="title">MyClass</span></span></span><br><span class="line"><span class="class">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>可以看到 <em>PWT</em> 的内容没有丝毫变化, 依然只有一个孤零零的函数, <code>@protocol witness for ClassFunc.MyProtocol.testFunc</code>. 但是该函数的实现却发生了变化.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// protocol witness for MyProtocol.testFunc() in conformance MyClass</span></span><br><span class="line"><span class="comment">// 省略无关代码</span></span><br><span class="line">bb0(%<span class="number">0</span> : $*<span class="type">MyClass</span>):</span><br><span class="line">  <span class="comment">// 省略无关代码</span></span><br><span class="line">  <span class="comment">// function_ref MyProtocol.testFunc()</span></span><br><span class="line">  %<span class="number">3</span> = function_ref @(<span class="class"><span class="keyword">extension</span> <span class="title">in</span> <span class="title">ClassFunc</span>):<span class="title">ClassFunc</span>.<span class="title">MyProtocol</span>.<span class="title">testFunc</span>() -&gt; () : <span class="title">$</span>@<span class="title">convention</span>(<span class="title">method</span>) &lt;τ<span class="title">_0_0</span> <span class="title">where</span> τ<span class="title">_0_0</span> : <span class="title">MyProtocol</span>&gt; (@<span class="title">in_guaranteed</span> τ<span class="title">_0_0</span>) -&gt; () // <span class="title">user</span>: %4</span></span><br><span class="line"><span class="class">  %4 = <span class="title">apply</span> %3&lt;<span class="title">MyClass</span>&gt;(%1) : <span class="title">$</span>@<span class="title">convention</span>(<span class="title">method</span>) &lt;τ<span class="title">_0_0</span> <span class="title">where</span> τ<span class="title">_0_0</span> : <span class="title">MyProtocol</span>&gt; (@<span class="title">in_guaranteed</span> τ<span class="title">_0_0</span>) -&gt; ()</span></span><br><span class="line"><span class="class">  // 省略无关代码</span></span><br><span class="line"><span class="class">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>函数中直接调用了 <em>MyProtocol</em> 提供的默认 <em>testFunc</em> 实现!</p>
+<p><img src="https://ws1.sinaimg.cn/large/006tKfTcgy1fo4jtfh4wej31600s2juo.jpg" alt="WX20180204-173449@2x"></p>
+<p>回想<a href="xxx.com">Swift中的动与静</a>一文中所举的例子.</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">MySubClass</span>: <span class="title">MyClass</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">func</span> <span class="title">testFunc</span><span class="params">()</span></span> &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> object: <span class="type">MyProtocol</span> = <span class="type">MySubClass</span>()</span><br><span class="line">object.testFunc()</span><br></pre></td></tr></table></figure>
+<p>之前给出的解释是由于 <em>MySubClass</em>提供的实现没有<strong>注册</strong>进 PWT 导致无法被调用, 现如今又有了新的解释:</p>
+<p>在 <em>MyClass</em> 没有提供 <em>testFunc</em> 的情况下, 由于没有走函数表派发, 因此 <em>MySubClass</em> 的实现是不会被调用的. </p>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>阅读文档得到了片面的理解, 又通过阅读源码真正解决自己的困惑, 也算是:</p>
+<blockquote>
+<p>纸上得来终觉浅, 绝知此事要躬行.</p>
+</blockquote>
+<h3 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h3><ul>
+<li><a href="https://developer.apple.com/videos/play/wwdc2016/416/" target="_blank" rel="noopener">Understanding swift performance</a></li>
+<li><a href="https://github.com/apple/swift/blob/master/docs/SIL.rst" target="_blank" rel="noopener">Swift Intermediate Language</a></li>
+</ul>
+
+
+                
+            </div>
+
+            <!-- Comments -->
+            
+                <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                    
+
+
+                </div>
+            
+        </div>
+    </div>
+</article>
+
+    <!-- Footer -->
+    <hr />
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 col-lg-offset-2 col-md-10 col-md-offset-1">
+                <ul class="list-inline text-center">
+                    
+
+                    
+
+                    
+                        <li>
+                            <a href="https://github.com/klugjo/hexo-theme-clean-blog" target="_blank">
+                                <span class="fa-stack fa-lg">
+                                    <i class="fa fa-circle fa-stack-2x"></i>
+                                    <i class="fa fa-github fa-stack-1x fa-inverse"></i>
+                                </span>
+                            </a>
+                        </li>
+                    
+
+                    
+
+                    
+
+                    
+                </ul>
+                <p class="copyright text-muted">&copy; 2018 Maize<br></p>
+                <p class="copyright text-muted">Original Theme <a target="_blank" href="http://startbootstrap.com/template-overviews/clean-blog/">Clean Blog</a> from <a href="http://startbootstrap.com/" target="_blank">Start Bootstrap</a></p>
+                <p class="copyright text-muted">Adapted for <a target="_blank" href="https://hexo.io/">Hexo</a> by <a href="http://www.codeblocq.com/" target="_blank">Jonathan Klughertz</a></p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+    <!-- After footer scripts -->
+    
+<!-- jQuery -->
+<script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+
+<!-- Bootstrap -->
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
+<!-- Gallery -->
+<script src="//cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.5/featherlight.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!-- Disqus Comments -->
+
+
+
+</body>
+
+</html>
