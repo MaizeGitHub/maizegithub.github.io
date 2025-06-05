@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video Resource Tester</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .controls {
+        margin-bottom: 20px;
+        display: flex;
+        gap: 10px;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      #startBtn {
+        background-color: #4caf50;
+      }
+      #resetBtn {
+        background-color: #f44336;
+      }
+      #calculateBtn {
+        background-color: #2196f3;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+        position: sticky;
+        top: 0;
+      }
+      tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+      tr.testing {
+        background-color: #fff9c4;
+      }
+      tr.completed {
+        background-color: #e8f5e9;
+      }
+      tr.error {
+        background-color: #ffebee;
+      }
+      .summary-card {
+        background-color: #e3f2fd;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      .summary-card h2 {
+        margin-top: 0;
+        color: #1565c0;
+      }
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+      }
+      .summary-item {
+        background-color: white;
+        padding: 15px;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .summary-item h3 {
+        margin-top: 0;
+        color: #333;
+        font-size: 16px;
+      }
+      .summary-item p {
+        margin-bottom: 0;
+        font-size: 24px;
+        font-weight: bold;
+        color: #1565c0;
+      }
+      #videoContainer {
+        display: none;
+      }
+      .progress-container {
+        margin-top: 10px;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+        height: 20px;
+        position: relative;
+      }
+      .progress-bar {
+        height: 100%;
+        background-color: #4caf50;
+        border-radius: 4px;
+        width: 0%;
+        transition: width 0.3s;
+      }
+      .progress-text {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        text-align: center;
+        line-height: 20px;
+        color: white;
+        font-weight: bold;
+        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+      }
+      .resources-list {
+        margin-bottom: 20px;
+        background-color: #f5f5f5;
+        padding: 15px;
+        border-radius: 4px;
+      }
+      .resources-list h2 {
+        margin-top: 0;
+        color: #333;
+      }
+      .resources-list ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+      .resources-list li {
+        margin-bottom: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Video Resource Tester</h1>
+
+    <div class="resources-list">
+      <h2>Hardcoded Resources</h2>
+      <ul id="resourcesList"></ul>
+    </div>
+
+    <div class="controls">
+      <button id="startBtn">Start</button>
+      <button id="resetBtn" disabled>Reset</button>
+      <button id="calculateBtn" disabled>Calculate</button>
+    </div>
+
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
+      <div class="progress-text" id="progressText">0%</div>
+    </div>
+
+    <table id="resultsTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Resource URL</th>
+          <th>Waiting Time (ms)</th>
+          <th>Download Speed</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody"></tbody>
+    </table>
+
+    <div class="summary-card" id="summaryCard" style="display: none">
+      <h2>Test Results Summary</h2>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <h3>Average Waiting Time</h3>
+          <p id="avgWaitingTime">-</p>
+        </div>
+        <div class="summary-item">
+          <h3>Average Download Speed</h3>
+          <p id="avgDownloadSpeed">-</p>
+        </div>
+        <div class="summary-item">
+          <h3>Total Resources</h3>
+          <p id="totalResources">-</p>
+        </div>
+        <div class="summary-item">
+          <h3>Successful Tests</h3>
+          <p id="successfulTests">-</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="videoContainer"></div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // DOM Elements
+        const startBtn = document.getElementById("startBtn");
+        const resetBtn = document.getElementById("resetBtn");
+        const calculateBtn = document.getElementById("calculateBtn");
+        const resultsBody = document.getElementById("resultsBody");
+        const videoContainer = document.getElementById("videoContainer");
+        const summaryCard = document.getElementById("summaryCard");
+        const avgWaitingTimeEl = document.getElementById("avgWaitingTime");
+        const avgDownloadSpeedEl = document.getElementById("avgDownloadSpeed");
+        const totalResourcesEl = document.getElementById("totalResources");
+        const successfulTestsEl = document.getElementById("successfulTests");
+        const progressBar = document.getElementById("progressBar");
+        const progressText = document.getElementById("progressText");
+        const resourcesList = document.getElementById("resourcesList");
+
+        // Hardcoded resources list
+        const resources = [
+          "https://v16m.tiktokcdn-us.com/5ed07d00f69da9d795d69b08ffd29e17/684256fa/video/tos/useast5/tos-useast5-pve-0068-tx/oEIZBEAG7gT0Rf4OIYfAkWG1LDeAAFYf4RyDEj/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1962&bt=981&cs=0&ds=6&ft=GSDrKInz7ThXdugKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZjpkOmVnNmQ2NmdoO2lpNUBpanhuaXc5cmp5cjMzZzczNEBfLWNhLl4yXi4xMzYzNjReYSNsYGVeMmRjaS1gLS1kMS9zcw%3D%3D&vvpl=1&l=20250605204617228DDA4961E93515814E&btag=e00090000",
+          "https://v16m.tiktokcdn-us.com/d7c9bf0155d01f8d162b3585b31ca72d/684257c5/video/tos/useast8/tos-useast8-pve-0068-tx2/okejIIGaUe9nUD02FnCvEgfQAQLRIOAIbnGqtI/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2520&bt=1260&cs=0&ds=6&ft=GSDrKInz7ThEeugKXq8Zmo&mime_type=video_mp4&qs=0&rc=NWQ3O2loMzU4aDw5ODVkZ0BpMzh4cHk5cnE3djMzaTczNEAuY2JhLi0xNjExXi0zLi40YSNeYmczMmRrLm9gLS1kMTJzcw%3D%3D&vvpl=1&l=2025060520512593B55ED2E41ECB17CF04&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/21e9ea1564a6f0c5018f2e0661c4e9a0/68424e10/video/tos/useast5/tos-useast5-ve-0068c002-tx/oEAHCaXefwMi8Cj9VIM3dAPJkjejQgXA16AIJK/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2830&bt=1415&cs=0&ds=6&ft=GSDrKInz7ThdxzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=OWg1OThmZmRkNjRpZDszN0BpamQzM3Q5cjR1czMzZzczNEBjNDE0Yi0yNi8xYDBfMTQuYSNwNF5rMmRzbDBgLS1kMS9zcw%3D%3D&vvpl=1&l=2025060520080720A712A2B18B7134EA3B&btag=e00090000",
+          "https://v16m.tiktokcdn-us.com/3bdac94cc2cba90f37a25626929463db/684256f0/video/tos/useast8/tos-useast8-pve-0068-tx2/oEHliDyrEAVlzpQE2EWE6IbCHIHRA3FemKB38f/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2016&bt=1008&cs=0&ds=6&ft=GSDrKInz7Th6jugKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZjU1Zjc0Z2VoNTs6ODQ2ZUBpMzxyeHU5cnM4dTMzaTczNEBhYC9iLy5eXzMxNTFiX15jYSNyZXNgMmRjYTJgLS1kMTJzcw%3D%3D&vvpl=1&l=202506052047526D7470B990B6ED1745AC&btag=e000b8000",
+          "https://v19.tiktokcdn-us.com/5330c1a99bd946d737571dc9b00de3c9/68424c55/video/tos/useast8/tos-useast8-ve-0068c004-tx2/okSUqg1RG0UonCeFAIeeATAkkLKCJOIIOKAjjk/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1430&bt=715&cs=0&ds=6&ft=GSDrKInz7ThxnzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=Njs0OjdoNDU0aTtpaTk1NEBpMzRuO2w5cjltdjMzaTczNEAvNS9gXjUvNi0xNl4wMGI1YSM1ZjJlMmRrbmhgLS1kMTJzcw%3D%3D&vvpl=1&l=202506052002341731659DB2E09D155F54&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/e58b5001e99726ef8b1b1e8dfaddf000/68424a8e/video/tos/useast8/tos-useast8-ve-0068c001-tx2/oA6MCCmiIqsfaw7DGAQwcENcIAKzZzBcn4WiiA/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1136&bt=568&cs=0&ds=6&ft=GSDrKInz7ThLyzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=NjZmaWVkNGc2ODVkM2c2PEBpamY4ZW05cnY0dTMzaTczNEBgLjEzNTEuNjAxLi9hNl8wYSMuaDAyMmRjZGdgLS1kMTJzcw%3D%3D&vvpl=1&l=202506051954557B09BA242D74E81321D0&btag=e00088000",
+          "https://v19.tiktokcdn-us.com/8c7a2130c0b20a3b2320dbf7bdcf436a/68425636/video/tos/useast8/tos-useast8-ve-0068c002-tx2/o4ebngUGbFfLsCzLIXrfwAQTRQTTepmAoGIAPR/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2782&bt=1391&cs=0&ds=6&ft=GSDrKInz7Th-DugKXq8Zmo&mime_type=video_mp4&qs=0&rc=OmU4NjRoPGY5aWY8Z2U8ZkBpanVtaGw5cnR5dTMzaTczNEAxY2FhYy5gNjMxYjEzMWIyYSM0bWRuMmQ0amhgLS1kMTJzcw%3D%3D&vvpl=1&l=2025060520440058BEF1DF451459157F86&btag=e00090000",
+          "https://v16m.tiktokcdn-us.com/52006c9e7d00b916c9e8aaa719267827/68425771/video/tos/useast5/tos-useast5-ve-0068c004-tx/o8zbpGppaA8IIAiI6BAENbsQOVClwHfOA6IBiZ/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2172&bt=1086&cs=0&ds=6&ft=GSDrKInz7ThyvugKXq8Zmo&mime_type=video_mp4&qs=0&rc=Ozs5PGU7OTM4Ojg0N2Q3O0BpanZubXQ5cmdrdDMzZzczNEAyNmIyMTQ1XjYxNS5hNWBeYSNgLmBoMmRjbmhgLS1kMS9zcw%3D%3D&vvpl=1&l=20250605204836F8942DBE2B2FB51730F0&btag=e00090000",
+          "https://v16m.tiktokcdn-us.com/6a01daebfa5364ad95b7c32bbc6069e9/6842570f/video/tos/useast5/tos-useast5-ve-0068c001-tx/oQFbPMQERIAAzSNf5GQgVvDmae6FEDbtBgi7vw/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2424&bt=1212&cs=0&ds=6&ft=GSDrKInz7ThPvugKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZmY5NTtkZTMzZmlkOTxlPEBpajp4NXY5cnBndTMzZzczNEAzYTAyLWEwNjYxLWNeNWEtYSNyb2pkMmRzcS5gLS1kMS9zcw%3D%3D&vvpl=1&l=20250605204805EF55287CCBB2B517DE5C&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/708b4bfcff4359bc9a681be006adfbbc/684255a1/video/tos/useast8/tos-useast8-pve-0068-tx2/o0EX0yIAV6AF5ECLOlRurufzczDtEBKEuQSme4/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2338&bt=1169&cs=0&ds=6&ft=GSDrKInz7ThwKugKXq8Zmo&mime_type=video_mp4&qs=0&rc=NjwzNGRkNTppaTppZDYzPEBpamh4Zm85cnY1dDMzaTczNEBhLmA0LjMxXjMxLTUtX2AuYSNwcW5zMmRrbXBgLS1kMTJzcw%3D%3D&vvpl=1&l=202506052041271AB88E84FFAB9414D9A5&btag=e00090000",
+          "https://v19.tiktokcdn-us.com/2cf4b015dc76bbe7be06e00c8be91e70/6842557f/video/tos/useast8/tos-useast8-pve-0068-tx2/owmrVXYvSBKQBAFRnE6IRfMgDjELApfkzrODEY/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1366&bt=683&cs=0&ds=6&ft=GSDrKInz7ThvVugKXq8Zmo&mime_type=video_mp4&qs=0&rc=NDZlOGlnPGRnOTg7M2c4aUBpMzhxdG05cm40dDMzaTczNEAzMF81YGMyXzMxMF8wX2I2YSMzbjFvMmRraTNgLS1kMTJzcw%3D%3D&vvpl=1&l=20250605204145F9DAE2DA4B09AD158E71&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/a3ce0cb5ee5732bba21a288934fa5fc7/68425588/video/tos/useast5/tos-useast5-ve-0068c002-tx/okCNAyLPLL4JcIZgQOIGSoeyI5UwAGjPHkeBfj/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=3128&bt=1564&cs=0&ds=6&ft=GSDrKInz7ThLVugKXq8Zmo&mime_type=video_mp4&qs=0&rc=aDM6aDs5NDYzNWRpaTxlOUBpajg2am45cmpmdjMzZzczNEAvNC8wMTBjXjIxYDQzXmAyYSNwc3NnMmQ0ZWNgLS1kMS9zcw%3D%3D&vvpl=1&l=20250605204150FDAB6DF559E48816F5D7&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/35d532b4a309e89eba9ba8984917ab18/684257dc/video/tos/useast8/tos-useast8-ve-0068c003-tx2/oQDfGF98ANhRSDsVE8cEmfM8GpEEqm4VAQBoIQ/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1128&bt=564&cs=0&ds=6&ft=GSDrKInz7ThHeugKXq8Zmo&mime_type=video_mp4&qs=0&rc=Zzo5O2gzPDhpZDVlM2VoZUBpM29sbnA5cnM5dDMzaTczNEA2L2AuMzVgXi8xMWEvNmBgYSNyLzRjMmRrcmhgLS1kMTJzcw%3D%3D&vvpl=1&l=202506052051256AA9322974AAAE155095&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/902862d22a697266c5f8b4e6948a626e/684257e1/video/tos/useast5/tos-useast5-pve-0068-tx/owE4bmZOzJWRTiiPUrSQs4hBCgnBEpIEFEBAl/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2078&bt=1039&cs=0&ds=6&ft=GSDrKInz7ThgeugKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZTQ3OmdkOzQ2PDo3ZjQ4OEBpM3B4O3I5cjRwdTMzZzczNEAtYmEwXmAzXmIxMTEvXjNjYSMuYGA0MmQ0ajFgLS1kMS9zcw%3D%3D&vvpl=1&l=202506052051314123F57459A886158A26&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/babe73b65d8034d077a2149adabe2334/68425588/video/tos/useast8/tos-useast8-ve-0068c004-tx2/ogEDmzQ7WdLLEBfW75sEyd4AETVMMDDINAfFRv/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2540&bt=1270&cs=0&ds=6&ft=GSDrKInz7ThLVugKXq8Zmo&mime_type=video_mp4&qs=0&rc=O2llNThpMzxmNzxkNDw5ZUBpajR0a3c5cjVldTMzaTczNEBiMDReNWNgXi4xMS4xMS8zYSNzcWlpMmRzajNgLS1kMTJzcw%3D%3D&vvpl=1&l=20250605204150FDAB6DF559E48816F5D7&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/a049b0dce540c0370a22c65247e510c5/68425795/video/tos/useast8/tos-useast8-ve-0068c003-tx2/o8hBiA2UwC5kWnMOIQE9ivueqBZAzEAhsiIIAK/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1884&bt=942&cs=0&ds=6&ft=GSDrKInz7ThHAugKXq8Zmo&mime_type=video_mp4&qs=0&rc=M2VoaDw5Zmk3NDxlZjozZUBpM3ByO3M5cngzdTMzaTczNEAuXzU0LS1fNmAxLy82YF81YSNrZGJeMmRrYDRgLS1kMTJzcw%3D%3D&vvpl=1&l=20250605205021824CE0B758E43A184813&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/4d98e07ec6b4047aaa808e20d39699ea/684257d5/video/tos/useast5/tos-useast5-ve-0068c001-tx/oUIDm2gwOR0zEBsERUuDzqfAEXSubBMQbgfFRP/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=3212&bt=1606&cs=0&ds=6&ft=GSDrKInz7ThgeugKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZTY2PGU1OGRpaGk6OWdoZkBpMzM2NnI5cmdtdTMzZzczNEBiNDJeNC8uNV8xMC82NWEzYSNvXmEuMmQ0a2FgLS1kMS9zcw%3D%3D&vvpl=1&l=202506052051314123F57459A886158A26&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/9c4d309dca148b9104e8f00f35d495d1/684255b8/video/tos/useast5/tos-useast5-pve-0068-tx/oYJNSAM4gHCQe1s98IAARvYXshKT28e7GfXjkI/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=3396&bt=1698&cs=0&ds=6&ft=GSDrKInz7ThLVugKXq8Zmo&mime_type=video_mp4&qs=0&rc=NzozMzVpOWdmNWhlZTM2aEBpajpwaHc5cnRqdDMzZzczNEA0M2A1MDEtXy0xYV8xMl5gYSNrYjZlMmRjcmZgLS1kMS9zcw%3D%3D&vvpl=1&l=20250605204150FDAB6DF559E48816F5D7&btag=e00090000",
+          "https://v19.tiktokcdn-us.com/1cd61466e0c8986edc320465b1d71bb3/6842553b/video/tos/useast5/tos-useast5-ve-0068c002-tx/okkJ6gjjgQ7fISjHINIApzGhLZegACFJvIb0eM/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1762&bt=881&cs=0&ds=6&ft=GSDrKInz7Th0WugKXq8Zmo&mime_type=video_mp4&qs=0&rc=Mzk4O2Y6Mzw5Zjo1ZWc0aUBpM2p4aHI5cnU3dTMzZzczNEAzLTAyLWIvNi8xYDBjLmNiYSM1NjRjMmQ0YG5gLS1kMS9zcw%3D%3D&vvpl=1&l=20250605204012D5783BD6400C60178E50&btag=e00088000",
+          "https://v19.tiktokcdn-us.com/d365d003a3aec028043a57d899c2df8e/6842536f/video/tos/useast8/tos-useast8-ve-0068c004-tx2/ocIISFQhWCEjIfDcEfJSrqQAEJtWMJtHVIeAj8/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2442&bt=1221&cs=0&ds=6&ft=GSDrKInz7Tha~zgKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZTczODU4PDU6aWY3OTkzZ0BpMzZ3ZHA5cjRlMzMzaTczNEBjYl42MGAvXjUxMTY0Li8xYSMzX29sMmRzYzZhLS1kMTJzcw%3D%3D&vvpl=1&l=20250605203248005DCD3A1F464E153046&btag=e00088000",
+          "https://v19.tiktokcdn-us.com/8a2df94ea0c5cc99b4627d1ac209fa7a/68425364/video/tos/useast8/tos-useast8-ve-0068c002-tx2/oYBEAuIIVXJsEioteFr1EoECiDxHf4APRQBAsV/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1716&bt=858&cs=0&ds=6&ft=GSDrKInz7Tha~zgKXq8Zmo&mime_type=video_mp4&qs=0&rc=Mzc4OTxnODQ1aTU1ZDg3NUBpaml2aXI5cmdlMzMzaTczNEA1MmA0Y2EzXmMxYTM2YDNiYSNqL2ZpMmRjLWVhLS1kMTJzcw%3D%3D&vvpl=1&l=20250605203248005DCD3A1F464E153046&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/4982a6bffde78ef54f211414baee9787/68425028/video/tos/useast5/tos-useast5-ve-0068c003-tx/o0rAmp9wEWEU4y9vd5i4Q9ISQE1GiBZgRu2TB/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2602&bt=1301&cs=0&ds=6&ft=GSDrKInz7ThLPzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=ODVmaDg0OmY2Zzk0aWhlOkBpanJwZWw5cmpueDMzZzczNEBjM2JfLS4vXzQxLzIwMDIvYSNoYWsvMmRrYGJgLS1kMS9zcw%3D%3D&vvpl=1&l=202506052017197A7A4B8465E69C14A233&btag=e00090000",
+          "https://v16m.tiktokcdn-us.com/55947a686237b29fe4bfefeb1a358b60/68425726/video/tos/useast5/tos-useast5-pve-0068-tx/o0fondR4EkDCUWQEeDFWbQWDDMGaIgB2wIgSAA/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2008&bt=1004&cs=0&ds=6&ft=GSDrKInz7Th0vugKXq8Zmo&mime_type=video_mp4&qs=0&rc=aDpnMzs3Zjw2ZDM5Z2c8Z0BpMzc7NnU5cjlqMzMzZzczNEAwXjEyYjNiNjExMjAxLl82YSMwcTYtMmRzXzJhLS1kMS9zcw%3D%3D&vvpl=1&l=20250605204844989C9650D2AE85185E16&btag=e000b8000",
+          "https://v19.tiktokcdn-us.com/c7374a5781e21ca181c2fd935858a68a/684253a2/video/tos/useast8/tos-useast8-ve-0068c004-tx2/oYJpa1BlIiAVE1AF1Qiq67CGi83dfIFu0lH0Ax/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2878&bt=1439&cs=0&ds=6&ft=GSDrKInz7ThDXzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=N2dmZmllNTY5ODY2aDg6ZEBpamtwc3Y5cmxoMzMzaTczNEA2MzJjLWNjNmExXmA2YDFgYSNuZzUxMmRzaWthLS1kMTJzcw%3D%3D&vvpl=1&l=20250605203330DA50AB0FF3187214A0FA&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/fd9fd689e775e940fba22d3c4ac47d8a/68425621/video/tos/useast8/tos-useast8-pve-0068-tx2/osScFeARIPiLqJkAEAkgfwgfGHCrGQAaReKRsU/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1768&bt=884&cs=0&ds=6&ft=GSDrKInz7ThMDugKXq8Zmo&mime_type=video_mp4&qs=0&rc=NTU2aGdlaDxlNWk4OTQzN0BpM2VlM3A5cnM8djMzaTczNEBhL2M2YDBjNjUxLWBhYzYwYSMzaTJoMmRzLnNgLS1kMTJzcw%3D%3D&vvpl=1&l=2025060520440815A2FC6ADB4F9F157592&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/223db0869023390383425aa5dd9a770c/6842572a/video/tos/useast5/tos-useast5-ve-0068c004-tx/oUfRIEqEEecEKGAAC3BOEl1CgQFxDnAAg5DSnE/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2188&bt=1094&cs=0&ds=6&ft=GSDrKInz7ThXvugKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZWUzPDs3Z2VlOmZlaDU6N0BpMzVxM3g5cjozeDMzZzczNEAxLi0yL15fXmIxM18xLjIuYSMvZjMvMmQ0aS1gLS1kMS9zcw%3D%3D&vvpl=1&l=2025060520482433C03099073AA71AE0F7&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/e3a9e259d5f03214442a0cc1def42317/684257d3/video/tos/useast5/tos-useast5-ve-0068c001-tx/o4DBsB0hyUvErATiHuZSkH4zBQEagi2LgBlAI/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1730&bt=865&cs=0&ds=6&ft=GSDrKInz7ThoeugKXq8Zmo&mime_type=video_mp4&qs=0&rc=aWc0ODc6Mzk1ZTw8ODlpaUBpMzp0ZW45cmV2MzMzZzczNEBeMzM2NC8tNjQxYmAtYC40YSM2L2pmMmRray1hLS1kMS9zcw%3D%3D&vvpl=1&l=20250605205135EA13C2CD1EFFFF15AAFF&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/e67b36c492498df61ce01aff3e2e1bd2/68425784/video/tos/useast8/tos-useast8-pve-0068-tx2/oI9wHgRiQ4IwAsWMCfLIArGxIDAj8e1IQ8edqL/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2628&bt=1314&cs=0&ds=6&ft=GSDrKInz7Th02ugKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZGczZjRoNDg5NTpmNDg4ZUBpanBmOnk5cng4MzMzaTczNEBfXjIuNTFjNV4xMDBhLWA2YSM1cWlzMmQ0bjBhLS1kMTJzcw%3D%3D&vvpl=1&l=202506052049480AAE6C8795971115EA49&btag=e00088000",
+          "https://v19.tiktokcdn-us.com/b564071b76109bfb434ead2550ebb804/684254b6/video/tos/useast5/tos-useast5-pve-0068-tx/osFtRxxqsUvEN2Gi3DRpwy46BQEZgi3orBcAI/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2870&bt=1435&cs=0&ds=6&ft=GSDrKInz7ThJZugKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZTZlZDc1OTk8Nzs7PDZmO0Bpamx4M2s5cmd4dzMzZzczNEBjMjMyX2IuNWExXzU2MDEvYSNoaXJsMmRrZGpgLS1kMS9zcw%3D%3D&vvpl=1&l=20250605203813BB6D6396F4AD8E14A95A&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/c38409f1b69be2cfaced0bbd9bd68710/68424ad5/video/tos/useast5/tos-useast5-ve-0068c002-tx/ocAHQPFs8WMEeCwEeFGMUI5ak2ZjImLAixeIvx/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2490&bt=1245&cs=0&ds=6&ft=GSDrKInz7ThMtzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=Ozk7aTRnNzlnNDpmNDY5OUBpajhzcHk5cnE5czMzZzczNEAuLTRjYjEzNWAxLmJgXzJhYSNrNTQyMmQ0NmpgLS1kMS9zcw%3D%3D&vvpl=1&l=20250605195608FE415B7A53737014B657&btag=e00088000",
+          "https://v19.tiktokcdn-us.com/73e36ccc8387511a1cb90564e03b761f/684254c1/video/tos/useast5/tos-useast5-ve-0068c002-tx/oEubIHRB4PQdUiBglEE80BsAaHEG3WQXNiUL3/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2894&bt=1447&cs=0&ds=6&ft=GSDrKInz7ThJZugKXq8Zmo&mime_type=video_mp4&qs=0&rc=OmdlOjkzPDM5OjtlZGg6aEBpMzo3b3E5cnVrMzMzZzczNEBjMV9iYzMyX2AxYl8yMS40YSNqai9vMmQ0LWJhLS1kMS9zcw%3D%3D&vvpl=1&l=20250605203813BB6D6396F4AD8E14A95A&btag=e00088000",
+          "https://v19.tiktokcdn-us.com/3641f5ed212409a66777571492af5a0d/684250d0/video/tos/useast5/tos-useast5-ve-0068c004-tx/o0mEL2Q37iFPABS8zn35RggBeiIGfDmBEab4v1/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1582&bt=791&cs=0&ds=6&ft=GSDrKInz7Thq-zgKXq8Zmo&mime_type=video_mp4&qs=0&rc=OmU2ODU2OzNmO2Y0ZDRoOEBpajlmbHE5cnY5eTMzZzczNEBgMGJgLl8tXjYxL2BfXzYyYSM0X3JxMmRzcmFgLS1kMS9zcw%3D%3D&vvpl=1&l=2025060520214820A7C04A53613B142A9C&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/81078bcd7fe7d16767837d4a9551c83f/6842501f/video/tos/useast5/tos-useast5-ve-0068c001-tx/oEgiUcowljBI8BxMiQo6YZIw3gE4i5EPEAisy/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1372&bt=686&cs=0&ds=6&ft=GSDrKInz7ThvzzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=O2gzMzk5ZWU5Z2k6aDw1O0BpM3JlO2s5cmpkeTMzZzczNEBfMzUvNWNhX2AxMF40YTEyYSNoMXAzMmQ0LjFgLS1kMS9zcw%3D%3D&vvpl=1&l=202506052018166568B8D215F83C15E1B5&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/72993ae856f68221aac17fd986aecc7a/68425155/video/tos/useast5/tos-useast5-pve-0068-tx/owHfviN3A7uRxB5QEN5D8oiI3iiEfnlSgQB9IA/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=3030&bt=1515&cs=0&ds=6&ft=GSDrKInz7ThECzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=aGU6aWc0PDdlNTxkZzZkNkBpamo1M3M5cnh4eTMzZzczNEA0M2NiNF8tNmAxNi9jMjRiYSMzcC5oMmRjYXJgLS1kMS9zcw%3D%3D&vvpl=1&l=20250605202340C10A4266051BA4192A2D&btag=e00088000",
+          "https://v19.tiktokcdn-us.com/36e29b0e50be9a422dce217180bbd1fa/684250ed/video/tos/useast5/tos-useast5-ve-0068c003-tx/o8oHA3CwIm80B9jEQnSfNDAngRFMCSfACgCDCE/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=3062&bt=1531&cs=0&ds=6&ft=GSDrKInz7Thq-zgKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZGZlOGdlNGVlaGY7PDRoNUBpMzQ4cnU5cjx2MzMzZzczNEBeLy4zXmBhNjAxNF4yMjJhYSNhcS1sMmRzLmNhLS1kMS9zcw%3D%3D&vvpl=1&l=2025060520214820A7C04A53613B142A9C&btag=e00088000",
+          "https://v19.tiktokcdn-us.com/31e32c79ecce6440f104bf74be6ec2f7/68424ac5/video/tos/useast5/tos-useast5-ve-0068c004-tx/oYn6Si1WwBkQbAFRiD1IGA2gN9EXgkffSlvDE2/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2710&bt=1355&cs=0&ds=6&ft=GSDrKInz7ThCyzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=OzZoO2k2OGY2NWU7ZjpkZ0Bpamxpams5cnZ1eTMzZzczNEBjMjUzY2JeXi4xMDIxY2BfYSNhaW0yMmQ0Zm5gLS1kMS9zcw%3D%3D&vvpl=1&l=20250605195539E70BDFC802763C1340E5&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/751baedaee469b20256d37b4281aee09/6842516b/video/tos/useast5/tos-useast5-ve-0068c002-tx/oUDrDufDSQ6WRvnEt49Of9td1BoAAEnUFgICIg/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2158&bt=1079&cs=0&ds=6&ft=GSDrKInz7ThzCzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZGVnMzY1NDtmODQ5ODszZEBpanB3Z3c5cmp3eTMzZzczNEBjXzIzXmNjNTIxY2E1NS0yYSNnY2JfMmRrZ25gLS1kMS9zcw%3D%3D&vvpl=1&l=20250605202411EE4693CBE793943799A5&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/d83f32fae696d14c70f39312ae2db5c7/68425494/video/tos/useast5/tos-useast5-ve-0068c001-tx/oQcbzBExiQBjwxA8I5PCAJKjIpisI8SiIDovf0/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2600&bt=1300&cs=0&ds=6&ft=GSDrKInz7ThqZugKXq8Zmo&mime_type=video_mp4&qs=0&rc=OWkzZTNoNDpnaDZpaTtmOEBpM2w5bGs5cnhxeTMzZzczNEBhMzA0YjFjNl8xYi1gLWMyYSMxM2prMmRjL2VgLS1kMS9zcw%3D%3D&vvpl=1&l=202506052037489E7DE7179458FE1532E5&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/8b499940a87e68482bc710c8f2286c10/6842519d/video/tos/useast5/tos-useast5-ve-0068c002-tx/ooKqXQSDnBbeiZBFEPAmGAIhED72fdEgmREAVr/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=3024&bt=1512&cs=0&ds=6&ft=GSDrKInz7ThzCzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZGc8NDo1aGc3aWU6Nzo4ZEBpMzVmc3g5cmQ5dzMzZzczNEAxNi5hNF5gX14xNTJfMTEuYSMyMGtkMmRzaW9gLS1kMS9zcw%3D%3D&vvpl=1&l=20250605202411EE4693CBE793943799A5&btag=e00090000",
+          "https://v16m.tiktokcdn-us.com/cb2ecd68c3576d8d00c27a17ef0f29c6/68425014/video/tos/useast8/tos-useast8-pve-0068-tx2/osbe0GpQkLL8IEJeIAQXEqQ7yJjqVAO4IIdCge/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2456&bt=1228&cs=0&ds=6&ft=GSDrKInz7ThczzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZDlnOzs8ZjY0NWRoODZmNUBpM2d1am45cjx4MzMzaTczNEA1YjBeLjQvX18xXi0wY2BeYSNtXmU0MmQ0XmlhLS1kMTJzcw%3D%3D&vvpl=1&l=20250605201820B8DAAC8BC25A44184B7C&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/96eb94d05eba894ae4f4d1bcdcf464ba/68424fde/video/tos/useast5/tos-useast5-ve-0068c001-tx/osdXjAfqSHIgQWRoEzgSQ9FEPIRv6oeJDVDlB3/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=3112&bt=1556&cs=0&ds=6&ft=GSDrKInz7ThLPzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=NzQzaDVmNDY5M2U3NTtnO0BpM3E4d2s5cnY4MzMzZzczNEAuLS9iNjNfNjMxXi8xYzBiYSNocTZpMmRzYmNhLS1kMS9zcw%3D%3D&vvpl=1&l=202506052017197A7A4B8465E69C14A233&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/b92d62e2fc66bded6866729f945ed55e/68424fcf/video/tos/useast5/tos-useast5-ve-0068c003-tx/oUAHA3WfCmQR8CmP0hMwtgLckPCjQrXAweeIgd/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1998&bt=999&cs=0&ds=6&ft=GSDrKInz7ThLPzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=OGdpNzo5OTs0O2c7NTdlPEBpM294Zng5cnNyMzMzZzczNEBjYzQyMC9gXmAxLTItMjE1YSNoanFmMmRjXmNhLS1kMS9zcw%3D%3D&vvpl=1&l=202506052017197A7A4B8465E69C14A233&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/2d157c2dd54627552a70e5ec3bed4e9e/68424fcf/video/tos/useast5/tos-useast5-pve-0068-tx/oUEiTQaKHM1G47xZNLI6gcvCBAhBiBBsD2UEE/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=3476&bt=1738&cs=0&ds=6&ft=GSDrKInz7ThLPzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=NDw8aDw3N2k1ZmQ5ZWQ4PEBpam9ncHA5cjRqMzMzZzczNEBhLy4yL2M1XzUxM2NfYy82YSNsbTZxMmRraGRhLS1kMS9zcw%3D%3D&vvpl=1&l=202506052017197A7A4B8465E69C14A233&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/515688471043dd76b48e3ee53ade1abf/68424fda/video/tos/useast5/tos-useast5-pve-0068-tx/okwCtfTCPwNIBVIEQj2iAMApbB4iIK5wzybtZD/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=3176&bt=1588&cs=0&ds=6&ft=GSDrKInz7ThLPzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=aDs6Zzk1O2lnZztnZjw1O0BpamxmdnA5cjk5eTMzZzczNEAtY2BjNDNgX2MxXjFeNWE2YSNqczFqMmRjby5gLS1kMS9zcw%3D%3D&vvpl=1&l=202506052017197A7A4B8465E69C14A233&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/3013df803102eb707e8a0487d39ae5e5/684257cf/video/tos/useast5/tos-useast5-ve-0068c002-tx/oALJvGgQHATAHKjgIeBCwjICkmceIfSPIn2AQG/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2260&bt=1130&cs=0&ds=6&ft=GSDrKInz7ThXeugKXq8Zmo&mime_type=video_mp4&qs=0&rc=aDY4NTs0OTw4NGRpNzo4OUBpajg3cnk5cmY0MzMzZzczNEAzMi0yLl9iXjYxLTI0YmMyYSNhLTI2MmRjLzRhLS1kMS9zcw%3D%3D&vvpl=1&l=202506052051378840827D2A75E2160574&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/0de81f481af66dddce490d545d35039f/68424fc5/video/tos/useast5/tos-useast5-ve-0068c003-tx/oQIPguF9DANxQj5tAIigexkBZfGn6WeiHICj7E/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2292&bt=1146&cs=0&ds=6&ft=GSDrKInz7ThLPzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=PDRlZjg3OWY8OGVmZjw7ZkBpMzpxNGs5cmZ2eTMzZzczNEAvLjFgYmEvXl4xYzEwNTUvYSNkaWsxMmRzMnFgLS1kMS9zcw%3D%3D&vvpl=1&l=202506052017197A7A4B8465E69C14A233&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/7ea3d95d9e7d75a1c35ffc12f6a1cad7/68425423/video/tos/useast5/tos-useast5-ve-0068c002-tx/oUeZkQlIMz3gSClwAQ86ACgseWAfjPHIzuIjjy/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1836&bt=918&cs=0&ds=6&ft=GSDrKInz7ThUXzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=PGk6NmRnOTs3PDc2N2RoZkBpM3JtNG85cjc8eDMzZzczNEBfNDRiLWJgXzAxLmAzMC0uYSMvcnNsMmRrNW1gLS1kMS9zcw%3D%3D&vvpl=1&l=2025060520334067565C5330A2B2150291&btag=e00090000",
+          "https://v16m.tiktokcdn-us.com/72fc7a27de2757535d1a8d3877fb5647/68424d85/video/tos/useast5/tos-useast5-ve-0068c001-tx/oU4KHANCBE2aRIx7AJiQpxIIDAfZzCBIivwGCx/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2516&bt=1258&cs=0&ds=6&ft=GSDrKInz7Th~xzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=aGg1PDc8ZDY4O2dmaDgzZEBpajY7NGs5cjc0eDMzZzczNEA2MTQxY19gXzQxYGMzNjI1YSM1ZmUuMmRjbzFgLS1kMS9zcw%3D%3D&vvpl=1&l=20250605200747189819E38011F313B03C&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/03b6161159013c95feb1f1ecd05cae9a/68424fdd/video/tos/useast5/tos-useast5-ve-0068c001-tx/osED6EDfFcBdgIAESRQYABqEKjmQISgfgnAUmE/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=4958&bt=2479&cs=0&ds=6&ft=GSDrKInz7ThLPzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=NWk5NTU4NDY6ZTQ3OTk0NEBpMzNnbGs5cjozeDMzZzczNEBgLWAzMjEuNV8xMC9hY2EuYSNqXmZmMmRjcS1gLS1kMS9zcw%3D%3D&vvpl=1&l=202506052017197A7A4B8465E69C14A233&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/14dd78f27d89ba3392c1236624b274c5/68424fc8/video/tos/useast5/tos-useast5-ve-0068c001-tx/oQEatfgGfAIQqFEsQDRoSpBacEDSFEGG2nIEk7/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=5278&bt=2639&cs=0&ds=6&ft=GSDrKInz7ThLPzgKXq8Zmo&mime_type=video_mp4&qs=0&rc=M2lmNDc1M2lmZ2k0OmU1M0BpM3k7bHc5cnU6MzMzZzczNEA2MF82Ml5hNS4xMjJjXi1iYSNhMzVxMmRjL2FhLS1kMS9zcw%3D%3D&vvpl=1&l=202506052017197A7A4B8465E69C14A233&btag=e000b8000",
+        ];
+
+        // Display resources in the list
+        resources.forEach((url) => {
+          const li = document.createElement("li");
+          li.textContent = url;
+          li.style.maxWidth = "100%";
+          li.style.overflow = "hidden";
+          li.style.textOverflow = "ellipsis";
+          li.style.whiteSpace = "nowrap";
+          resourcesList.appendChild(li);
+        });
+
+        // State variables
+        let testResults = [];
+        let currentTestIndex = -1;
+        let isTesting = false;
+        let testingCancelled = false;
+
+        // Event Listeners
+        startBtn.addEventListener("click", startTesting);
+        resetBtn.addEventListener("click", resetTesting);
+        calculateBtn.addEventListener("click", calculateResults);
+
+        // Functions
+        function startTesting() {
+          // Reset previous results if any
+          if (testResults.length > 0) {
+            resetTesting(false);
+          }
+
+          // Setup UI for testing
+          isTesting = true;
+          testingCancelled = false;
+          startBtn.disabled = true;
+          resetBtn.disabled = false;
+          calculateBtn.disabled = true;
+          summaryCard.style.display = "none";
+
+          // Create table rows for each resource
+          resources.forEach((url, index) => {
+            const row = document.createElement("tr");
+            row.id = `resource-${index}`;
+            row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td style="max-width: 25vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${url}</td>
+                        <td>Pending...</td>
+                        <td>Pending...</td>
+                        <td>Pending</td>
+                    `;
+            resultsBody.appendChild(row);
+          });
+
+          // Start testing resources one by one
+          currentTestIndex = -1;
+          testNextResource();
+        }
+
+        function testNextResource() {
+          currentTestIndex++;
+
+          // Update progress bar
+          const progress = (currentTestIndex / resources.length) * 100;
+          progressBar.style.width = `${progress}%`;
+          progressText.textContent = `${Math.round(progress)}%`;
+
+          if (currentTestIndex >= resources.length || testingCancelled) {
+            finishTesting();
+            return;
+          }
+
+          const url = resources[currentTestIndex];
+          const row = document.getElementById(`resource-${currentTestIndex}`);
+          row.className = "testing";
+          row.cells[4].textContent = "Testing...";
+
+          // Test the resource
+          testVideoResource(url, currentTestIndex).then(() => {
+            // Wait 1 second before testing the next resource
+            setTimeout(testNextResource, 1000);
+          });
+        }
+
+        function testVideoResource(url, index) {
+          return new Promise((resolve) => {
+            const row = document.getElementById(`resource-${index}`);
+
+            // Create video element for testing
+            const video = document.createElement("video");
+            video.style.display = "none";
+            video.preload = "auto";
+            videoContainer.appendChild(video);
+
+            let startTime = 0;
+            let loadingTime = 0;
+            let videoSize = 0;
+            let downloadSpeed = 0;
+            let hasError = false;
+
+            // Get file size using HEAD request
+            fetch(url, { method: "HEAD" })
+              .then((response) => {
+                if (!response.ok)
+                  throw new Error("Network response was not ok");
+                const contentLength = response.headers.get("content-length");
+                videoSize = contentLength ? parseInt(contentLength, 10) : 0;
+                return videoSize;
+              })
+              .catch((error) => {
+                console.error("Error fetching file size:", error);
+                hasError = true;
+                row.className = "error";
+                row.cells[2].textContent = "Error";
+                row.cells[3].textContent = "Error";
+                row.cells[4].textContent = "Error: " + error.message;
+                video.remove();
+                resolve();
+              });
+
+            // Set up event listeners for the video
+            video.addEventListener("loadstart", function () {
+              startTime = performance.now();
+            });
+
+            video.addEventListener("canplay", function () {
+              if (hasError) return;
+
+              loadingTime = performance.now() - startTime;
+
+              // Update the row with results
+              row.cells[2].textContent = Math.round(loadingTime) + " ms";
+
+              if (videoSize > 0) {
+                // Calculate download speed (bytes per second)
+                downloadSpeed = videoSize / (loadingTime / 1000);
+                row.cells[3].textContent = formatBytes(downloadSpeed) + "/s";
+              } else {
+                row.cells[3].textContent = "Unknown";
+              }
+
+              row.className = "completed";
+              row.cells[4].textContent = "Completed";
+
+              // Store the test result
+              testResults.push({
+                url: url,
+                waitingTime: loadingTime,
+                videoSize: videoSize,
+                downloadSpeed: downloadSpeed,
+                status: "completed",
+              });
+
+              // Clean up
+              video.remove();
+              resolve();
+            });
+
+            video.addEventListener("error", function () {
+              hasError = true;
+              row.className = "error";
+              row.cells[2].textContent = "Error";
+              row.cells[3].textContent = "Error";
+              row.cells[4].textContent =
+                "Error: " +
+                (video.error ? video.error.message : "Unknown error");
+
+              // Store the test result with error
+              testResults.push({
+                url: url,
+                waitingTime: 0,
+                videoSize: 0,
+                downloadSpeed: 0,
+                status: "error",
+              });
+
+              video.remove();
+              resolve();
+            });
+
+            // Set a timeout in case the video never loads
+            const timeout = setTimeout(() => {
+              if (!hasError) {
+                hasError = true;
+                row.className = "error";
+                row.cells[2].textContent = "Timeout";
+                row.cells[3].textContent = "Timeout";
+                row.cells[4].textContent = "Error: Timeout after 30 seconds";
+
+                // Store the test result with timeout
+                testResults.push({
+                  url: url,
+                  waitingTime: 0,
+                  videoSize: 0,
+                  downloadSpeed: 0,
+                  status: "timeout",
+                });
+
+                video.remove();
+                resolve();
+              }
+            }, 30000); // 30 second timeout
+
+            // Clear timeout if video loads or errors
+            video.addEventListener("canplay", () => clearTimeout(timeout));
+            video.addEventListener("error", () => clearTimeout(timeout));
+
+            // Start loading the video
+            video.src = url;
+          });
+        }
+
+        function resetTesting(userInitiated = true) {
+          if (isTesting && userInitiated) {
+            testingCancelled = true;
+          }
+
+          // Reset UI
+          isTesting = false;
+          currentTestIndex = -1;
+          testResults = [];
+          resultsBody.innerHTML = "";
+          videoContainer.innerHTML = "";
+          startBtn.disabled = false;
+          resetBtn.disabled = true;
+          calculateBtn.disabled = true;
+          summaryCard.style.display = "none";
+          progressBar.style.width = "0%";
+          progressText.textContent = "0%";
+        }
+
+        function finishTesting() {
+          isTesting = false;
+          startBtn.disabled = false;
+          resetBtn.disabled = false;
+          calculateBtn.disabled = false;
+          progressBar.style.width = "100%";
+          progressText.textContent = "100%";
+
+          // If we have results, show the calculate button
+          if (testResults.length > 0 && !testingCancelled) {
+            calculateResults();
+          }
+        }
+
+        function calculateResults() {
+          if (testResults.length === 0) {
+            alert("No test results available");
+            return;
+          }
+
+          // Filter successful tests
+          const successfulTests = testResults.filter(
+            (result) => result.status === "completed"
+          );
+
+          // Calculate averages
+          let totalWaitingTime = 0;
+          let totalDownloadSpeed = 0;
+
+          successfulTests.forEach((result) => {
+            totalWaitingTime += result.waitingTime;
+            totalDownloadSpeed += result.downloadSpeed;
+          });
+
+          const avgWaitingTime =
+            successfulTests.length > 0
+              ? totalWaitingTime / successfulTests.length
+              : 0;
+          const avgDownloadSpeed =
+            successfulTests.length > 0
+              ? totalDownloadSpeed / successfulTests.length
+              : 0;
+
+          // Update summary card
+          avgWaitingTimeEl.textContent = Math.round(avgWaitingTime) + " ms";
+          avgDownloadSpeedEl.textContent = formatBytes(avgDownloadSpeed) + "/s";
+          totalResourcesEl.textContent = testResults.length;
+          successfulTestsEl.textContent = successfulTests.length;
+          summaryCard.style.display = "block";
+        }
+
+        function formatBytes(bytes, decimals = 2) {
+          if (bytes === 0 || isNaN(bytes)) return "0 Bytes";
+
+          const k = 1024;
+          const dm = decimals < 0 ? 0 : decimals;
+          const sizes = [
+            "Bytes",
+            "KB",
+            "MB",
+            "GB",
+            "TB",
+            "PB",
+            "EB",
+            "ZB",
+            "YB",
+          ];
+
+          const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+          return (
+            parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i]
+          );
+        }
+      });
+    </script>
+  </body>
+</html>
