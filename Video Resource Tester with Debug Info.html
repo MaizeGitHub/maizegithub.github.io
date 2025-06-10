@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video Resource Tester with Debug Info</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .controls {
+        margin-bottom: 20px;
+        display: flex;
+        gap: 10px;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+      }
+      button:hover {
+        background-color: #45a049;
+      }
+      button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+      }
+      #startBtn {
+        background-color: #4caf50;
+      }
+      #resetBtn {
+        background-color: #f44336;
+      }
+      #calculateBtn {
+        background-color: #2196f3;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+        position: sticky;
+        top: 0;
+      }
+      tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+      tr.testing {
+        background-color: #fff9c4;
+      }
+      tr.completed {
+        background-color: #e8f5e9;
+      }
+      tr.error {
+        background-color: #ffebee;
+      }
+      .summary-card {
+        background-color: #e3f2fd;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      .summary-card h2 {
+        margin-top: 0;
+        color: #1565c0;
+      }
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+      }
+      .summary-item {
+        background-color: white;
+        padding: 15px;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .summary-item h3 {
+        margin-top: 0;
+        color: #333;
+        font-size: 16px;
+      }
+      .summary-item p {
+        margin-bottom: 0;
+        font-size: 24px;
+        font-weight: bold;
+        color: #1565c0;
+      }
+      #videoContainer {
+        display: none;
+      }
+      .progress-container {
+        margin-top: 10px;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+        height: 20px;
+        position: relative;
+      }
+      .progress-bar {
+        height: 100%;
+        background-color: #4caf50;
+        border-radius: 4px;
+        width: 0%;
+        transition: width 0.3s;
+      }
+      .progress-text {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        text-align: center;
+        line-height: 20px;
+        color: white;
+        font-weight: bold;
+        text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.5);
+      }
+      .resources-list {
+        margin-bottom: 20px;
+        background-color: #f5f5f5;
+        padding: 15px;
+        border-radius: 4px;
+      }
+      .resources-list h2 {
+        margin-top: 0;
+        color: #333;
+      }
+      .resources-list ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+      .resources-list li {
+        margin-bottom: 5px;
+      }
+      .debug-info {
+        background-color: #f0f8ff;
+        border: 1px solid #b0c4de;
+        border-radius: 4px;
+        padding: 10px;
+        margin-top: 10px;
+        font-family: monospace;
+        font-size: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .debug-info h4 {
+        margin-top: 0;
+        margin-bottom: 5px;
+        color: #333;
+      }
+      .debug-info pre {
+        margin: 0;
+        white-space: pre-wrap;
+      }
+      .debug-toggle {
+        cursor: pointer;
+        color: #1565c0;
+        text-decoration: underline;
+        font-size: 14px;
+        margin-top: 5px;
+        display: inline-block;
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Video Resource Tester with Debug Info</h1>
+
+    <div class="resources-list">
+      <h2>Hardcoded Resources</h2>
+      <ul id="resourcesList"></ul>
+    </div>
+
+    <div class="controls">
+      <button id="startBtn">Start</button>
+      <button id="resetBtn" disabled>Reset</button>
+      <button id="calculateBtn" disabled>Calculate</button>
+    </div>
+
+    <div class="progress-container">
+      <div class="progress-bar" id="progressBar"></div>
+      <div class="progress-text" id="progressText">0%</div>
+    </div>
+
+    <table id="resultsTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Resource URL</th>
+          <th>Waiting Time (ms)</th>
+          <th>Download Speed</th>
+          <th>Status</th>
+          <th>Debug Info</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody"></tbody>
+    </table>
+
+    <div class="summary-card" id="summaryCard" style="display: none">
+      <h2>Test Results Summary</h2>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <h3>Average Waiting Time</h3>
+          <p id="avgWaitingTime">-</p>
+        </div>
+        <div class="summary-item">
+          <h3>Average Download Speed</h3>
+          <p id="avgDownloadSpeed">-</p>
+        </div>
+        <div class="summary-item">
+          <h3>Total Resources</h3>
+          <p id="totalResources">-</p>
+        </div>
+        <div class="summary-item">
+          <h3>Successful Tests</h3>
+          <p id="successfulTests">-</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="videoContainer"></div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // DOM Elements
+        const startBtn = document.getElementById("startBtn");
+        const resetBtn = document.getElementById("resetBtn");
+        const calculateBtn = document.getElementById("calculateBtn");
+        const resultsBody = document.getElementById("resultsBody");
+        const videoContainer = document.getElementById("videoContainer");
+        const summaryCard = document.getElementById("summaryCard");
+        const avgWaitingTimeEl = document.getElementById("avgWaitingTime");
+        const avgDownloadSpeedEl = document.getElementById("avgDownloadSpeed");
+        const totalResourcesEl = document.getElementById("totalResources");
+        const successfulTestsEl = document.getElementById("successfulTests");
+        const progressBar = document.getElementById("progressBar");
+        const progressText = document.getElementById("progressText");
+        const resourcesList = document.getElementById("resourcesList");
+
+        // Hardcoded resources list
+        const resources = [
+          "https://v19.tiktokcdn-us.com/f24af00fc47c90ce05f1c99c039a29c0/68490a0f/video/tos/useast8/tos-useast8-ve-0068c004-tx2/osKlP5gyQEVtGyIECJoE4DBBOItLVIefAAvFQR/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2426&bt=1213&cs=0&ds=6&ft=GSDrKInz7Th-SNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=NjhpNzwzOWY0OTQ6ODQ4M0BpamR0c3Y5cnM1MzMzaTczNEA1Yl4tNmBfNWAxXmA0Y2EtYSNwNWJvMmRjNHBhLS1kMTJzcw%3D%3D&vvpl=1&l=202506102245370E31A4C79FD78D209CCF&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/94bdb09026783f7553e468aba0d4a6f4/68490d21/video/tos/useast8/tos-useast8-pve-0068-tx2/o0XyjgZAnpEURsreBtFEAdDKEPARTIoIQHf9Vs/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2352&bt=1176&cs=0&ds=6&ft=GSDrKInz7ThG5NqKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZGk4ZDszNmg5NzVkPGlmaUBpM3BxdHA5cmxmdjMzaTczNEA1NF40YWMwNjQxXjJiMzRgYSMtcXJlMmRrYnNgLS1kMTJzcw%3D%3D&vvpl=1&l=2025061022574453EC6A6BC33CA02840CD&btag=e00090000",
+          "https://v16m.tiktokcdn-us.com/b5ddd8505673acb9a3dd9a7876fb8c6d/6849064a/video/tos/useast8/tos-useast8-pve-0068-tx2/oYngQnBnEAhIfqRq4EAifgUAp0cDVFkENVcpDE/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2196&bt=1098&cs=0&ds=6&ft=GSDrKInz7ThMVNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=NztnaDc4O2c7Zjk3PGk0NUBpamQ5dmw5cmdndzMzaTczNEBiYy1eNTEzNWAxYC9eMWJjYSNecC02MmQ0L15gLS1kMTJzcw%3D%3D&vvpl=1&l=2025061022263214CCE10E3ED5A61EDC7E&btag=e00098000",
+          "https://v16m.tiktokcdn-us.com/c96264977f44cee1f51d2ed15205030b/68490a78/video/tos/useast5/tos-useast5-pve-0068-tx/oUifgIDQFEnFF8QTkSfBRK5LhoUuVlEBAEDJJI/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2214&bt=1107&cs=0&ds=6&ft=GSDrKInz7Th.0NqKXq8Zmo&mime_type=video_mp4&qs=0&rc=NGQ6M2hoZjU3aTdnMzhnM0Bpam44cW45cng4djMzZzczNEA0NGEvMzZfNjUxYDVeLzNiYSMxLWwvMmRjNmVgLS1kMS9zcw%3D%3D&vvpl=1&l=202506102247142AFB5768F734451FE493&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/6390ba2fc072d5dbe092a24acc28f23e/684907e1/video/tos/useast5/tos-useast5-ve-0068c002-tx/oEPsoDIxEASyxWQEeDwELbBFdIoRg4FgniBTZf/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2094&bt=1047&cs=0&ds=6&ft=GSDrKInz7Th~eNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=OmhmZmdlZDVpZ2c8NzNoM0BpanA0bng5cnZmdjMzZzczNEA2Ni9hM2IxNWMxXl8tMTYwYSNganBsMmRrLWVgLS1kMS9zcw%3D%3D&vvpl=1&l=2025061022360277DB267088FD591B295E&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/9cd8fa90e764e0d4f98207d6325409a5/68490804/video/tos/useast5/tos-useast5-ve-0068c002-tx/osAAet7HOnDfYiA4G4uFo4RmAIgeOkZidcVfAZ/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1478&bt=739&cs=0&ds=6&ft=GSDrKInz7Th5eNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZmdkOjw1ODhpNTxmNmYzZkBpanVpNnA5cnJ0djMzZzczNEAtYzQwYDVfNWExMGAuYi82YSNpcmtgMmRjLmdgLS1kMS9zcw%3D%3D&vvpl=1&l=20250610223606C676FA024CA926262F1D&btag=e00090000",
+          "https://v16m.tiktokcdn-us.com/1e011c18e44545a581bea3ed317e4aa9/684911d8/video/tos/useast5/tos-useast5-pve-0068-tx/oozLIVqCABizywIIyPGAfin26BpTxE9yIpaPJQ/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2160&bt=1080&cs=0&ds=6&ft=GSDrKInz7ThCLNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=MzQ4ZmhnaGU5ZDRmZGU0M0BpM2R5aXA5cnJtdTMzZzczNEA0YmBiMi5gNV4xXjNfLi1fYSNtMjZtMmRzbl5gLS1kMS9zcw%3D%3D&vvpl=1&l=20250610231819EB9F23B58440FD24FE6E&btag=e00090000",
+          "https://v16m.tiktokcdn-us.com/c805becf9d844ee062a341489c99aa9b/68490592/video/tos/useast8/tos-useast8-pve-0068-tx2/oMYsIVJ8sDA0WKFxhFFrERoQcEAAfBdOE9fi4E/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=3392&bt=1696&cs=0&ds=6&ft=GSDrKInz7ThMVNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=M2VnNDM6ODdoODg4Nmg6aUBpanl0NG85cmU4MzMzaTczNEAxYC1fYC1hNS8xNjZgMzYyYSMxLV9zMmQ0anBhLS1kMTJzcw%3D%3D&vvpl=1&l=2025061022263214CCE10E3ED5A61EDC7E&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/72d553c1ccc7c349eb7245a0f134df7c/68490515/video/tos/useast8/tos-useast8-ve-0068c004-tx2/ok9EIeeGqIPojTPIcFpergZiBCRAAIdALQIBEA/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2426&bt=1213&cs=0&ds=6&ft=GSDrKInz7Th9cNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=M2U5ZDY6ZWdkO2ZlOjY2PEBpM2Z2am05cjtreTMzaTczNEAuX2IxMC01XzExMmNgXl8yYSNzZzZvMmQ0NC1gLS1kMTJzcw%3D%3D&vvpl=1&l=202506102223580A37FA9872EE811EC5D5&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/67e1cfc3bce9c6f1ed601bb1409dc571/68490acf/video/tos/useast5/tos-useast5-ve-0068c002-tx/ooQeSCqfRoEpgSDLBaDrEVFxjVAKgA7I2HFBEE/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1416&bt=708&cs=0&ds=6&ft=GSDrKInz7Th7tNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=PDU1aTw8OjMzNWllaThlaEBpM3hubHc5cmprMzMzZzczNEA1M19gNTRgNWIxNDNfLTBjYSNpMTZxMmRrXmlhLS1kMS9zcw%3D%3D&vvpl=1&l=20250610224901FD0FB7BC7A08F6235F76&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/3f0029a335d47ba6dd2d7078bdcc285e/68490975/video/tos/useast5/tos-useast5-ve-0068c001-tx/ooIjSkQAweqLnlcrGHQ0faLJ8GgCoAeoIBIoTa/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2492&bt=1246&cs=0&ds=6&ft=GSDrKInz7Th83NqKXq8Zmo&mime_type=video_mp4&qs=0&rc=N2k3OWdmNGk2OjdpaDg1ZUBpM2k7Z3Q5cm5yMzMzZzczNEAyMTEvMi0xNi8xMzIzNDUwYSNrbjQuMmRrMW5hLS1kMS9zcw%3D%3D&vvpl=1&l=202506102243113FCFFA65B35E4F1C03FE&btag=e000b8000",
+          "https://v19.tiktokcdn-us.com/7db56b3cca7d9b932f12521b027ac4cf/68490562/video/tos/useast5/tos-useast5-ve-0068c002-tx/oYTcoA0BFSg3zEInQKFfDBgPsUoeB4QLRMDhEE/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1688&bt=844&cs=0&ds=6&ft=GSDrKInz7ThjKNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=aTc6PDhmZGQ1PDk4M2U7ZkBpM3A6dGo5cms4djMzZzczNEAuXi9fMjEwNjYxXmMyMF8xYSNiaGNmMmQ0LWhgLS1kMS9zcw%3D%3D&vvpl=1&l=202506102225086FED459A0E14011EC1CE&btag=e00090000",
+          "https://v16m.tiktokcdn-us.com/310d17aa79d6035422b77a12262fd9b4/684911a8/video/tos/useast5/tos-useast5-ve-0068c002-tx/oozar5gEbEd6XezoA6bLIqQtfqEA6BDS3DsRLF/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1232&bt=616&cs=0&ds=6&ft=GSDrKInz7ThkLNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZjlnOjk5NGY6NTtnZjpkZkBpanVxeHA5cmZ0MzMzZzczNEAuMC9hLi00XmIxXmMyM2BgYSNybWEyMmRzaWphLS1kMS9zcw%3D%3D&vvpl=1&l=202506102318208D558383F1E07A248CEB&btag=e000b0000",
+          "https://v16m.tiktokcdn-us.com/a400bc25623efb558fe6009d05c8b8f9/68491009/video/tos/useast8/tos-useast8-ve-0068c003-tx2/okoYegELgPhgIjtAfPiAecu4QKoMKDi97Qgeew/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1996&bt=998&cs=0&ds=6&ft=GSDrKInz7Thy7NqKXq8Zmo&mime_type=video_mp4&qs=0&rc=OzQ0NDQ7ZmhnaTU1NWdnOUBpajt4anA5cjt1eTMzaTczNEBgXjQ2NmI0XjMxNWIyXl40YSNrbHJkMmQ0ZXJgLS1kMTJzcw%3D%3D&vvpl=1&l=202506102309241205093BC216E13C2E86&btag=e00090000",
+          "https://v19.tiktokcdn-us.com/7be2e02ef5853995bb2cf473a21dd66f/684906eb/video/tos/useast5/tos-useast5-ve-0068c001-tx/oQBMIoFFg8wC5HQCHBovPsAUiiavjQ418iDEE/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2118&bt=1059&cs=0&ds=6&ft=GSDrKInz7Th4jNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=Zzs0ZTc3ZDc1ZzU0NTM3OUBpM2luM3Y5cmplMzMzZzczNEAvXzA2XmJfNV4xNWFgYjBjYSMzXmpoMmRrbGxhLS1kMS9zcw%3D%3D&vvpl=1&l=202506102231437C811D4ED75F401F404D&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/4efebbf5268d2c0744385e44a374ecf6/684907e9/video/tos/useast5/tos-useast5-ve-0068c002-tx/ogsLl7XAgAKIAjzkAgLgvXkGlekUBNrIHICefR/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2550&bt=1275&cs=0&ds=6&ft=GSDrKInz7Th5eNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=NTRpZjk0MzRnOjU5OzdlZ0BpM28zbGw5cnZvcTMzZzczNEA1LWFfLjI2Nl8xMDRfYC4zYSMxLTUyMmRraWNgLS1kMS9zcw%3D%3D&vvpl=1&l=20250610223606C676FA024CA926262F1D&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/154a3a04b7f7159ea597e5613a5b80f7/68490c12/video/tos/useast5/tos-useast5-ve-0068c003-tx/ocCEAOWwjL3MfIHQIPIGfFenEgM1AAmCHkgrDj/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2216&bt=1108&cs=0&ds=6&ft=GSDrKInz7Th5TNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=OWU3PGQ2M2k8aGY4ZTk7OEBpanByank5cjg2eTMzZzczNEAxYF82LTQvNjIxYy1eL2NiYSNnM2hzMmRjZGRgLS1kMS9zcw%3D%3D&vvpl=1&l=20250610225310FAC6FE9A43A77C20B56A&btag=e00090000",
+          "https://v16m.tiktokcdn-us.com/acf0137b2ac49dd8fea55c07d867fd33/684911b9/video/tos/useast8/tos-useast8-ve-0068c001-tx2/ocwDjAiexqgAlIIQZYLeICAjfHCRjgQcjFGNIz/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1536&bt=768&cs=0&ds=6&ft=GSDrKInz7ThkLNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=NjNlPGc4OWU3Z2VoZzdnO0BpM2k4bW05cnhyMzMzaTczNEAtLy5iMWMwXi8xLTYvNS8zYSNsZS5fMmRjbGxhLS1kMTJzcw%3D%3D&vvpl=1&l=202506102318208D558383F1E07A248CEB&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/686b9c0bf6a4b4ccca166e6d4e5ffb08/684911c2/video/tos/useast8/tos-useast8-pve-0068-tx2/oIAEP6pAQt2IqnPC5fHDfIijfMAFg48AH0TQIr/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1714&bt=857&cs=0&ds=6&ft=GSDrKInz7ThkLNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=NDVlNGg8ZzdpaTg6ZjtoOEBpanZ5Z3U5cm14MzMzaTczNEA0MTVjMjAzX18xX2M1LzRfYSNsNmBfMmQ0Y2NhLS1kMTJzcw%3D%3D&vvpl=1&l=202506102318208D558383F1E07A248CEB&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/d43a70e8686faeb5e63578b33c32f326/684911b7/video/tos/useast8/tos-useast8-pve-0068-tx2/okDexDVgEAqceOQI8I5El1QFrIsjAKFzQrCDaf/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=3162&bt=1581&cs=0&ds=6&ft=GSDrKInz7ThkLNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZTRpOWRkZjM1Mzk0NjU5OUBpM2hpM3g5cjp4MzMzaTczNEAtYjM0YzE1XmAxNi0tNGNeYSNhXnJjMmQ0NWlhLS1kMTJzcw%3D%3D&vvpl=1&l=202506102318208D558383F1E07A248CEB&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/0d414adfbf8832f86a81bc0617a2b9ab/684911c2/video/tos/useast5/tos-useast5-ve-0068c002-tx/oYFuYIXm8Aa1D1ogEgxHnRfBStgfILRgEwAgQD/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1886&bt=943&cs=0&ds=6&ft=GSDrKInz7ThuLNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=NDc6ZTM7ZDtnZWkzNTw7NkBpM3Q2OWo5cmQ6dTMzZzczNEAwYjNfYTQ2Ni8xYC0wMmNjYSNkaTJgMmQ0a2xgLS1kMS9zcw%3D%3D&vvpl=1&l=20250610231822599C1DA6DDB307251A4D&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/cbaf4be6aff3d1d0f6c7178f3f7a934f/68490fc8/video/tos/useast8/tos-useast8-pve-0068-tx2/owGwuqTPICA8YQIOvejYIxwIf0geFA3ig2AOLO/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=3730&bt=1865&cs=0&ds=6&ft=GSDrKInz7ThsPNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=O2VmZWg5OTxmN2VkZ2VpN0BpamdydHY5cjQ1dzMzaTczNEBhM2JfMF4xNTQxYzIuMzQtYSNzLTEzMmRzcXBgLS1kMTJzcw%3D%3D&vvpl=1&l=20250610231000196AB116852C4A214D94&btag=e00088000",
+          "https://v16m.tiktokcdn-us.com/ef1792b9787c5285694d6c68aba2fcf8/684911ea/video/tos/useast5/tos-useast5-ve-0068c002-tx/ooPTnDEf7QDZgRA1I8OEB1OtySF3RrBEEV2wfx/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2528&bt=1264&cs=0&ds=6&ft=GSDrKInz7ThkCNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=NWQ1aTc8ODk2OmlpPDM4OUBpMzQ4Nnk5cndteDMzZzczNEAwMTFeMDZfXzAxMTNgYDFhYSNtZmZsMmRjcWpgLS1kMS9zcw%3D%3D&vvpl=1&l=202506102317162A8F4D5DF158651D191D&btag=e00090000",
+          "https://v16m.tiktokcdn-us.com/2f4141a592eec55279fd5a7aad76a1ab/684911e8/video/tos/useast8/tos-useast8-pve-0068-tx2/osmGQfBnEAHIpaRGUEIafgFAOs7DRFmD0VKhBE/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2204&bt=1102&cs=0&ds=6&ft=GSDrKInz7ThuLNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=aDY5aTlkZDU1OmY7ZWk8O0BpajU1am05cnVudzMzaTczNEAzLV9hNTYyXl4xYTReYTAwYSNlXmw2MmQ0LjBgLS1kMTJzcw%3D%3D&vvpl=1&l=20250610231822599C1DA6DDB307251A4D&btag=e00090000",
+          "https://v16m.tiktokcdn-us.com/a23669103d47b0dae2ade92273049524/68490ff9/video/tos/useast5/tos-useast5-ve-0068c003-tx/ooAmORmgIIfgJGSIPkdeFLMuRGmd4mQbOeetcA/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=3448&bt=1724&cs=0&ds=6&ft=GSDrKInz7ThrzNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=ZGQ3OmgzNWU5ZWc0MzU4NkBpMzpnNHA5cnk8MzMzZzczNEBfNWIwYmFfNl8xLzEtNjNhYSM2cm1zMmRzZWthLS1kMS9zcw%3D%3D&vvpl=1&l=20250610231059E70190CFDA359624890F&btag=e000b8000",
+          "https://v19.tiktokcdn-us.com/0cd1bb512843a8f10e3649a9e43c100c/68490f99/video/tos/useast5/tos-useast5-ve-0068c001-tx/oMtIQeJ5lA6jGebRAwUIABCkNHPLgfWAQXnIER/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=3826&bt=1913&cs=0&ds=6&ft=GSDrKInz7Thq7NqKXq8Zmo&mime_type=video_mp4&qs=0&rc=Njc3NDozO2VpOWZnNTo3NEBpM29qM285cnI3MzMzZzczNEAtYzAwX2AxXjQxXjZhXy5hYSNuZi4uMmQ0bWNhLS1kMS9zcw%3D%3D&vvpl=1&l=20250610230916BE11753ACA6D6F1FCE22&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/4eec8f2f27ded83664d267995e92f38a/684911b6/video/tos/useast8/tos-useast8-ve-0068c002-tx2/oYnjC7eNEODKBT2EIdDMJEAdQRFPbVf6GAtDHE/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2134&bt=1067&cs=0&ds=6&ft=GSDrKInz7ThuLNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=OWdmOGg3NDVnZzM4aGdkNEBpM3h0cXc5cnE2eDMzaTczNEBiMGI0Y2IuNjIxMDAvYWE0YSMyZ15xMmRjMDNgLS1kMTJzcw%3D%3D&vvpl=1&l=20250610231822599C1DA6DDB307251A4D&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/49ddeecc09eed02f6bc83c0c67d45182/684911b5/video/tos/useast5/tos-useast5-ve-0068c002-tx/ok2Rv2EWWCtPe0SHEG97YqgQDfABFDgRnB8niI/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1022&bt=511&cs=0&ds=6&ft=GSDrKInz7ThuLNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=NTVlZjVkPGUzZTdkOzhmPEBpajtnO3E5cng1eTMzZzczNEA1LmFjMy4tNWExLS0yNGBeYSNxNG1vMmRzcmFgLS1kMS9zcw%3D%3D&vvpl=1&l=20250610231822599C1DA6DDB307251A4D&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/ef2676f386fad4796241e14e5be37771/684911ac/video/tos/useast8/tos-useast8-ve-0068c004-tx2/ogpCisTqiEAYVC8HNdCPjfQv7Ai5WABVzI7Iai/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=2670&bt=1335&cs=0&ds=6&ft=GSDrKInz7ThuLNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=OzwzM2Q7PDVoMzo0NGY8PEBpam9mNHM5cjxqdzMzaTczNEAvYzUuNTFhNTUxNGNiXl8yYSNxbnNfMmRzY2VgLS1kMTJzcw%3D%3D&vvpl=1&l=20250610231822599C1DA6DDB307251A4D&btag=e000b8000",
+          "https://v16m.tiktokcdn-us.com/2aaeab90849e6b7ec9ecbdf3f0bb81f8/684911c2/video/tos/useast8/tos-useast8-ve-0068c004-tx2/ooQfFo5EyBTHKART45IAIFEEVNDglBgOmfu7bV/?a=1180&bti=cWxkbHZsfGhkdzF3anZsZnJmbHFvbWtcZHFvcHBlZmsrYjo%3D&ch=0&cr=0&dr=0&er=0&lr=default&cd=0%7C0%7C0%7C0&cv=1&br=1772&bt=886&cs=0&ds=6&ft=GSDrKInz7ThuLNqKXq8Zmo&mime_type=video_mp4&qs=0&rc=NTxmOGhpPDU5ZGhkOjQ5ZUBpamxtbHY5cnhtMzMzaTczNEBfYGMxXzFjXy0xMC0uYGBhYSNvbWM2MmRzXi9hLS1kMTJzcw%3D%3D&vvpl=1&l=20250610231822599C1DA6DDB307251A4D&btag=e00088000",
+        ];
+
+        // Variables
+        let currentIndex = 0;
+        let results = [];
+        let isRunning = false;
+
+        // Initialize
+        function init() {
+          // Display resources in the list
+          resourcesList.innerHTML = "";
+          resources.forEach((resource, index) => {
+            const li = document.createElement("li");
+            li.textContent = `Resource ${index + 1}: ${resource.substring(
+              0,
+              50
+            )}...`;
+            resourcesList.appendChild(li);
+          });
+
+          // Set total resources count
+          totalResourcesEl.textContent = resources.length;
+        }
+
+        // Format bytes to readable format
+        function formatBytes(bytes, decimals = 2) {
+          if (bytes === 0) return "0 Bytes";
+          const k = 1024;
+          const dm = decimals < 0 ? 0 : decimals;
+          const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+          const i = Math.floor(Math.log(bytes) / Math.log(k));
+          return (
+            parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i]
+          );
+        }
+
+        // Format speed
+        function formatSpeed(bytes, milliseconds) {
+          const seconds = milliseconds / 1000;
+          const bytesPerSecond = bytes / seconds;
+          return formatBytes(bytesPerSecond) + "/s";
+        }
+
+        // Get client IP address
+        async function getClientIP() {
+          try {
+            const response = await fetch("https://api.ipify.org?format=json");
+            const data = await response.json();
+            return data.ip;
+          } catch (error) {
+            console.error("Error fetching client IP:", error);
+            return "Unknown";
+          }
+        }
+
+        // Get target IP address from hostname
+        async function getTargetIP(url) {
+          try {
+            const hostname = new URL(url).hostname;
+            // Note: This is a mock implementation since DNS lookups aren't directly possible in browser JavaScript
+            // In a real implementation, you would need a server-side component or use a service
+            return `${hostname} (IP lookup requires server-side code)`;
+          } catch (error) {
+            console.error("Error getting target IP:", error);
+            return "Unknown";
+          }
+        }
+
+        // Test resource
+        async function testResource(url, index) {
+          const row = document.createElement("tr");
+          row.classList.add("testing");
+          row.innerHTML = `
+                  <td>${index + 1}</td>
+                  <td>${url.substring(0, 50)}...</td>
+                  <td>Testing...</td>
+                  <td>Testing...</td>
+                  <td>Testing...</td>
+                  <td><span class="debug-toggle" data-index="${index}">Show Debug Info</span><div class="debug-info hidden" id="debug-${index}">Loading...</div></td>
+                `;
+          resultsBody.appendChild(row);
+
+          try {
+            const startTime = performance.now();
+            const requestTime = new Date().toISOString();
+            const clientIP = await getClientIP();
+            const targetIP = await getTargetIP(url);
+
+            // Fetch the resource
+            const response = await fetch(url, {
+              method: "GET",
+              headers: {
+                Range: "bytes=0-999999",
+              },
+              mode: "cors",
+              cache: "no-cache",
+            });
+
+            // Get response headers
+            const headers = {};
+            response.headers.forEach((value, key) => {
+              headers[key] = value;
+            });
+
+            const endTime = performance.now();
+            const waitingTime = endTime - startTime;
+
+            // Get content length from headers
+            const contentLength = parseInt(headers["content-length"] || 0);
+            const downloadSpeed =
+              contentLength > 0
+                ? formatSpeed(contentLength, waitingTime)
+                : "N/A";
+
+            // Create debug info
+            const debugInfo = {
+              resourceURL: url,
+              clientIP,
+              targetIP,
+              requestTime,
+              responseHeaders: headers,
+              responseTime: new Date().toISOString(),
+              responseStatus: response.status,
+              responseStatusText: response.statusText,
+            };
+
+            // Update the debug info div
+            const debugDiv = document.getElementById(`debug-${index}`);
+            debugDiv.innerHTML = `
+                    <h4>Resource URL:</h4>
+                    <pre>${debugInfo.resourceURL}</pre>
+                    <h4>Client IP:</h4>
+                    <pre>${debugInfo.clientIP}</pre>
+                    <h4>Target IP:</h4>
+                    <pre>${debugInfo.targetIP}</pre>
+                    <h4>Request Time:</h4>
+                    <pre>${debugInfo.requestTime}</pre>
+                    <h4>Response Time:</h4>
+                    <pre>${debugInfo.responseTime}</pre>
+                    <h4>Response Headers:</h4>
+                    <pre>${JSON.stringify(
+                      debugInfo.responseHeaders,
+                      null,
+                      2
+                    )}</pre>
+                  `;
+
+            // Update the row with results
+            row.classList.remove("testing");
+            row.classList.add("completed");
+            row.cells[2].textContent = waitingTime.toFixed(2);
+            row.cells[3].textContent = downloadSpeed;
+            row.cells[4].textContent = `${response.status} ${response.statusText}`;
+
+            // Add to results
+            results.push({
+              url,
+              waitingTime,
+              downloadSpeed,
+              status: response.status,
+              debugInfo,
+            });
+
+            return true;
+          } catch (error) {
+            console.error(`Error testing resource ${index + 1}:`, error);
+
+            // Update the debug info div with error
+            const debugDiv = document.getElementById(`debug-${index}`);
+            debugDiv.innerHTML = `
+                    <h4>Error:</h4>
+                    <pre>${error.message}</pre>
+                  `;
+
+            row.classList.remove("testing");
+            row.classList.add("error");
+            row.cells[2].textContent = "Error";
+            row.cells[3].textContent = "Error";
+            row.cells[4].textContent = error.message;
+
+            // Add to results
+            results.push({
+              url,
+              waitingTime: 0,
+              downloadSpeed: "Error",
+              status: "Error",
+              error: error.message,
+            });
+
+            return false;
+          }
+        }
+
+        // Run tests
+        async function runTests() {
+          isRunning = true;
+          startBtn.disabled = true;
+          resetBtn.disabled = true;
+          calculateBtn.disabled = true;
+          results = [];
+          resultsBody.innerHTML = "";
+          summaryCard.style.display = "none";
+
+          let successCount = 0;
+
+          for (let i = 0; i < resources.length; i++) {
+            currentIndex = i;
+            const success = await testResource(resources[i], i);
+            if (success) successCount++;
+
+            // Update progress
+            const progress = ((i + 1) / resources.length) * 100;
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${Math.round(progress)}%`;
+          }
+
+          // Enable buttons
+          isRunning = false;
+          startBtn.disabled = false;
+          resetBtn.disabled = false;
+          calculateBtn.disabled = false;
+
+          // Update successful tests count
+          successfulTestsEl.textContent = successCount;
+
+          // Add event listeners for debug toggles
+          document.querySelectorAll(".debug-toggle").forEach((toggle) => {
+            toggle.addEventListener("click", function () {
+              const index = this.getAttribute("data-index");
+              const debugInfo = document.getElementById(`debug-${index}`);
+              if (debugInfo.classList.contains("hidden")) {
+                debugInfo.classList.remove("hidden");
+                this.textContent = "Hide Debug Info";
+              } else {
+                debugInfo.classList.add("hidden");
+                this.textContent = "Show Debug Info";
+              }
+            });
+          });
+        }
+
+        // Calculate statistics
+        function calculateStats() {
+          if (results.length === 0) return;
+
+          // Filter out errors
+          const successfulResults = results.filter(
+            (result) => result.status !== "Error"
+          );
+
+          if (successfulResults.length === 0) {
+            avgWaitingTimeEl.textContent = "N/A";
+            avgDownloadSpeedEl.textContent = "N/A";
+            return;
+          }
+
+          // Calculate average waiting time
+          const totalWaitingTime = successfulResults.reduce(
+            (sum, result) => sum + result.waitingTime,
+            0
+          );
+          const avgWaitingTime = totalWaitingTime / successfulResults.length;
+          avgWaitingTimeEl.textContent = avgWaitingTime.toFixed(2) + " ms";
+
+          // For download speed, we can only show a qualitative assessment
+          avgDownloadSpeedEl.textContent = "See individual results";
+
+          // Show summary card
+          summaryCard.style.display = "block";
+        }
+
+        // Reset
+        function reset() {
+          if (isRunning) return;
+
+          results = [];
+          resultsBody.innerHTML = "";
+          progressBar.style.width = "0%";
+          progressText.textContent = "0%";
+          summaryCard.style.display = "none";
+          avgWaitingTimeEl.textContent = "-";
+          avgDownloadSpeedEl.textContent = "-";
+          successfulTestsEl.textContent = "-";
+        }
+
+        // Event listeners
+        startBtn.addEventListener("click", runTests);
+        resetBtn.addEventListener("click", reset);
+        calculateBtn.addEventListener("click", calculateStats);
+
+        // Initialize
+        init();
+      });
+    </script>
+  </body>
+</html>
